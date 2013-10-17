@@ -163,6 +163,10 @@ namespace Statistics
                     {
                         checkAfk(args.Player, args.Player.Name);
                     }
+                    else if (args.Parameters[0] == "kills")
+                    {
+                        CheckOtherStats(args.Player, args.Player.Name);
+                    }
                 }
 
                 else if (args.Parameters.Count > 1)
@@ -188,7 +192,7 @@ namespace Statistics
                             }
                         case "kills":
                             {
-                                CheckPlayer(args.Player, player);
+                                CheckOtherStats(args.Player, player);
                                 break;
                             }
                         case "group":
@@ -238,7 +242,7 @@ namespace Statistics
                     if (!p.AFK && p.TSPlayer.IsLoggedIn)
                     {
                         p.lastTimeUpdate = DateTime.Now;
-                        UpdatePoints(p);
+                        UpdateTime(p);
                     }
                 }
             }
@@ -502,8 +506,8 @@ namespace Statistics
         }
         #endregion
 
-        #region UpdatePoints
-        public void UpdatePoints(TimePl player)
+        #region UpdateTime
+        public void UpdateTime(TimePl player)
         {
             using (var reader = db.QueryReader("SELECT * FROM Players WHERE Name = @0", player.TSPlayer.UserAccountName))
             {
