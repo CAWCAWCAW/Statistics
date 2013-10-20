@@ -386,11 +386,14 @@ namespace Statistics
         #region OnChat
         public void OnChat(ServerChatEventArgs args)
         {
-            if (PlayerList[args.Who].AFKcount > 0)
-                PlayerList[args.Who].AFKcount = 0;
+            if (PlayerList[args.Who] != null)
+            {
+                if (PlayerList[args.Who].AFKcount > 0)
+                    PlayerList[args.Who].AFKcount = 0;
 
-            if (PlayerList[args.Who].AFK)
-                PlayerList[args.Who].AFK = false;
+                if (PlayerList[args.Who].AFK)
+                    PlayerList[args.Who].AFK = false;
+            }
         }
         #endregion
 
