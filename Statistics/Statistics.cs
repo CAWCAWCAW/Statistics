@@ -112,6 +112,7 @@ namespace Statistics
                 Hook.NetGreetPlayer.Deregister(this, OnGreet);
                 //Hook.GameUpdate.Deregister(this, OnUpdate);
                 Hook.ServerLeave.Deregister(this, OnLeave);
+                Hook.GamePostInitialize.Register(this, StartTimers);
                 Hook.ServerChat.Deregister(this, OnChat);
                 //Hook.NetGetData.Deregister(this, GetData);
                 TShockAPI.Hooks.PlayerHooks.PlayerPostLogin -= PostLogin;
@@ -126,6 +127,7 @@ namespace Statistics
             Hook.GameInitialize.Register(this, OnInitialize);
             Hook.NetGreetPlayer.Register(this, OnGreet);
             Hook.ServerLeave.Register(this, OnLeave);
+            Hook.GamePostInitialize.Register(this, StartTimers);
             //Hook.GameUpdate.Register(this, OnUpdate);
             Hook.ServerChat.Register(this, OnChat);
             //Hook.NetGetData.Register(this, GetData);
@@ -139,8 +141,6 @@ namespace Statistics
         public void OnInitialize(EventArgs args)
         {
             Commands.ChatCommands.Add(new Command("time.check", Check, "check"));
-            Timers.aTimer.Start();
-            Timers.uTimer.Start();
 
             DatabaseInit();
         }
@@ -161,6 +161,11 @@ namespace Statistics
             }
         }
         #endregion
+
+        public void StartTimers(EventArgs args)
+        {
+            Timers.Start();
+        }
 
         #region OnLeave
         public void OnLeave(LeaveEventArgs args)
