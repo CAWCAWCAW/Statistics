@@ -67,15 +67,12 @@ namespace Statistics
         #region updateTimer
         static void updateTimer(object sender, ElapsedEventArgs args)
         {
-            lock (Statistics.PlayerList)
+            foreach (StatPl p in Statistics.PlayerList)
             {
-                foreach (StatPl p in Statistics.PlayerList)
+                if (!p.AFK && p.TSPlayer.IsLoggedIn)
                 {
-                    if (!p.AFK && p.TSPlayer.IsLoggedIn)
-                    {
-                        p.lastTimeUpdate = DateTime.Now;
-                        Statistics.UpdatePlayer(p);
-                    }
+                    p.lastTimeUpdate = DateTime.Now;
+                    Statistics.UpdatePlayer(p);
                 }
             }
         }
@@ -94,10 +91,10 @@ namespace Statistics
         { get { return "WhiteX"; } }
 
         public override string Description
-        { get { return "Time statistics for players"; } }
+        { get { return "Statistics for players"; } }
 
         public override string Name
-        { get { return "Time"; } }
+        { get { return "Statistics"; } }
 
         public override Version Version
         { get { return Assembly.GetExecutingAssembly().GetName().Version; } }
@@ -110,11 +107,10 @@ namespace Statistics
 
                 Hook.GameInitialize.Deregister(this, OnInitialize);
                 Hook.NetGreetPlayer.Deregister(this, OnGreet);
-                //Hook.GameUpdate.Deregister(this, OnUpdate);
                 Hook.ServerLeave.Deregister(this, OnLeave);
                 Hook.GamePostInitialize.Register(this, StartTimers);
                 Hook.ServerChat.Deregister(this, OnChat);
-                //Hook.NetGetData.Deregister(this, GetData);
+                Hook.NetGetData.Deregister(this, GetData);
                 TShockAPI.Hooks.PlayerHooks.PlayerPostLogin -= PostLogin;
             }
             base.Dispose(disposing);
@@ -128,9 +124,8 @@ namespace Statistics
             Hook.NetGreetPlayer.Register(this, OnGreet);
             Hook.ServerLeave.Register(this, OnLeave);
             Hook.GamePostInitialize.Register(this, StartTimers);
-            //Hook.GameUpdate.Register(this, OnUpdate);
             Hook.ServerChat.Register(this, OnChat);
-            //Hook.NetGetData.Register(this, GetData);
+            Hook.NetGetData.Register(this, GetData);
             TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PostLogin;
 
             GetDataHandlers.InitGetDataHandler();
@@ -141,6 +136,8 @@ namespace Statistics
         public void OnInitialize(EventArgs args)
         {
             Commands.ChatCommands.Add(new Command("time.check", Check, "check"));
+            Commands.ChatCommands.Add(new Command("graph.set", Graph.graphCommand, "graph"));
+            Commands.ChatCommands.Add(new Command("time.force", ForceUpdate, "force"));
 
             DatabaseInit();
         }
@@ -153,8 +150,9 @@ namespace Statistics
             {
                 if (!reader.Read())
                 {
-                    db.Query("INSERT INTO Stats (Name, Time, FirstLogin, LastSeen) VALUES (@0, @1, @2, @3)",
-                        args.Player.UserAccountName, 0, DateTime.Now.ToString("G"), "Now");
+                    db.Query("INSERT INTO Stats (Name, Time, FirstLogin, LastSeen, kills, deaths, mobkills, bosskills)" +
+                    "VALUES (@0, @1, @2, @3, @4, @5, @6, @7)",
+                        args.Player.UserAccountName, 0, DateTime.Now.ToString("G"), "Now", 0, 0, 0, 0);
 
                     args.Player.SendInfoMessage("Now tracking your playing time (while not afk)");
                 }
@@ -165,6 +163,18 @@ namespace Statistics
         public void StartTimers(EventArgs args)
         {
             Timers.Start();
+        }
+
+        public void ForceUpdate(CommandArgs args)
+        {
+            var player = GetPlayer(args.Player.Index);
+            var lastSeen = DateTime.UtcNow.ToString("G");
+
+            db.Query("UPDATE Stats SET Kills = @0, Deaths = @1, MobKills = @2, "
+                    + "BossKills = @3, LastSeen = @4 WHERE Name = @5", player.kills, player.deaths, player.mobkills,
+                    player.bosskills, lastSeen, player.TSPlayer.UserAccountName);
+
+            args.Player.SendSuccessMessage("Attempted to force an update");
         }
 
         #region OnLeave
@@ -209,12 +219,12 @@ namespace Statistics
             {
                 try
                 {
-                    if (DataHandler.GetDataHandlers.HandlerGetData(type, player, data))
+                    if (GetDataHandlers.HandlerGetData(type, player, data))
                         args.Handled = true;
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex.ToString());
+                    Log.ConsoleError(ex.ToString());
                 }
             }
         }
@@ -285,9 +295,9 @@ namespace Statistics
         #region Check
         public void Check(CommandArgs args)
         {
-            if (args.Parameters.Count > 2)
+            if (args.Parameters.Count < 1)
             {
-                args.Player.SendWarningMessage("Invalid: /check <time/afk> [optional(player)]");
+                args.Player.SendWarningMessage("Invalid: /check <time/afk/kills/group> [optional(player/group)]");
             }
             else
             {
@@ -303,6 +313,10 @@ namespace Statistics
                     else if (args.Parameters[0] == "kills")
                     {
                         CheckOtherStats(args.Player, args.Player.Name);
+                    }
+                    else
+                    {
+                        args.Player.SendWarningMessage("Invalid: /check <time/afk/kills/group> [optional(player/group)]");
                     }
                 }
 
@@ -340,6 +354,9 @@ namespace Statistics
                                     args.Player.SendErrorMessage("Invalid group");
                                 break;
                             }
+                        default:
+                            args.Player.SendWarningMessage("Invalid: /check <time/afk/kills/group> [optional(player/group)]");
+                            break;
                     }
                 }
             }
@@ -391,14 +408,19 @@ namespace Statistics
         #region OnChat
         public void OnChat(ServerChatEventArgs args)
         {
-            if (PlayerList[args.Who] != null)
+            try
             {
-                if (PlayerList[args.Who].AFKcount > 0)
-                    PlayerList[args.Who].AFKcount = 0;
+                var player = PlayerList[args.Who];
+                if (player != null)
+                {
+                    if (player.AFKcount > 0)
+                        player.AFKcount = 0;
 
-                if (PlayerList[args.Who].AFK)
-                    PlayerList[args.Who].AFK = false;
+                    if (player.AFK)
+                        player.AFK = false;
+                }
             }
+            catch { }
         }
         #endregion
 
@@ -410,9 +432,13 @@ namespace Statistics
             try
             {
                 var lastSeen = DateTime.UtcNow.ToString("G");
-                db.Query("UPDATE Stats SET Kills = Kills + @0, Deaths = Deaths + @1, MobKills = MobKills + @2, "
-                    + "BossKills = BossKills + @3, LastSeen = @4 WHERE Name = @5", player.kills, player.deaths, player.mobkills,
+                db.Query("UPDATE Stats SET Time = Time + @0, Kills = Kills + @1, Deaths = Deaths + @2, " +
+                    "MobKills = MobKills + @3, BossKills = BossKills + @4, LastSeen = @5 WHERE Name = @6",
+                    player.TimePlayed, player.kills, player.deaths, player.mobkills, 
                     player.bosskills, lastSeen, player.TSPlayer.UserAccountName);
+
+                resetPlayer(player);
+               
             }
             catch (Exception x)
             {
@@ -420,6 +446,15 @@ namespace Statistics
             }
         }
         #endregion
+
+        private static void resetPlayer(StatPl player)
+        {
+            player.kills = 0;
+            player.deaths = 0;
+            player.mobkills = 0;
+            player.bosskills = 0;
+            player.TimePlayed = 0;
+        }
 
         #region GetPlayer
         public static StatPl GetPlayer(int index)
@@ -465,23 +500,23 @@ namespace Statistics
                     double weeks = Math.Floor(totalTime / 604800);
                     double days = Math.Floor(((totalTime / 604800) - weeks) * 7);
                     TimeSpan ts = new TimeSpan(0, 0, 0, (int)totalTime);
-                    string newTime = string.Format("{0}weeks, {1}days, {2}hhours, {3}minutes, {4}seconds", weeks, days, ts.Hours, ts.Minutes, ts.Seconds);
+                    string newTime = string.Format("{0} weeks, {1} days, {2} hours, {3} minutes, {4} seconds", weeks, days, ts.Hours, ts.Minutes, ts.Seconds);
 
 
                     if (GetPlayer(player) != null)
                     {
                         ply.SendInfoMessage(player + " is online.");
-                        ply.SendInfoMessage(player + " has played for " + newTime + " and has " + totalTime + " total rank points");
+                        ply.SendInfoMessage(player + " has played for " + newTime + " and has " + totalTime + " total seconds played");
                     }
                     else
                     {
                         ply.SendInfoMessage(player + " is offline, and was last seen " + lastSeen);
-                        ply.SendInfoMessage(player + " has played for " + newTime + " and has " + totalTime + " total rank points");
+                        ply.SendInfoMessage(player + " has played for " + newTime + " and has " + totalTime + " total seconds played");
                     }
                 }
                 else
                 {
-                    ply.SendWarningMessage(player + " does not exist in the database. Make sure you are using their account name");
+                    ply.SendErrorMessage("Invalid: Player not found");
                 }
             }
         }
@@ -537,10 +572,10 @@ namespace Statistics
             {
                 var newPlayer = GetPlayer(pl);
 
-                player.SendInfoMessage(newPlayer + " has been afk for " + newPlayer.AFKcount + " seconds");
+                player.SendInfoMessage(newPlayer.Name + " has been afk for " + newPlayer.AFKcount + " seconds");
             }
             else
-                player.SendErrorMessage("Invalid. Player cannot be found");
+                player.SendErrorMessage("Invalid. Player not found");
 
         }
         #endregion
@@ -573,20 +608,6 @@ namespace Statistics
         }
         #endregion
 
-        #region UpdateTime
-        public void UpdateTime(StatPl player)
-        {
-            using (var reader = db.QueryReader("SELECT * FROM Players WHERE Name = @0", player.TSPlayer.UserAccountName))
-            {
-                while (reader.Read())
-                {
-                    int time = reader.Get<int>("Time");
-                    player.totalPoints = time + player.TimePlayed;
-                }
-            }
-
-        }
-        #endregion
 
         public Statistics(Main game)
             : base(game)
