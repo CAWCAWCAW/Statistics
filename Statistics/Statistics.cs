@@ -28,7 +28,7 @@ namespace Statistics
 
         public static void Start()
         { 
-            uTimer = new Timer(300000);
+            uTimer = new Timer(180000);
             uTimer.Elapsed += new ElapsedEventHandler(updateTimer);
             uTimer.Enabled = true;
 
@@ -137,7 +137,6 @@ namespace Statistics
         {
             Commands.ChatCommands.Add(new Command("time.check", Check, "check"));
             Commands.ChatCommands.Add(new Command("graph.set", Graph.graphCommand, "graph"));
-            Commands.ChatCommands.Add(new Command("time.force", ForceUpdate, "force"));
 
             DatabaseInit();
         }
@@ -163,18 +162,6 @@ namespace Statistics
         public void StartTimers(EventArgs args)
         {
             Timers.Start();
-        }
-
-        public void ForceUpdate(CommandArgs args)
-        {
-            var player = GetPlayer(args.Player.Index);
-            var lastSeen = DateTime.UtcNow.ToString("G");
-
-            db.Query("UPDATE Stats SET Kills = @0, Deaths = @1, MobKills = @2, "
-                    + "BossKills = @3, LastSeen = @4 WHERE Name = @5", player.kills, player.deaths, player.mobkills,
-                    player.bosskills, lastSeen, player.TSPlayer.UserAccountName);
-
-            args.Player.SendSuccessMessage("Attempted to force an update");
         }
 
         #region OnLeave
