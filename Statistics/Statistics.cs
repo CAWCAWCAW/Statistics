@@ -3,6 +3,7 @@ using System.IO;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Timers;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -19,10 +20,71 @@ using MySql.Data.MySqlClient;
 
 namespace Statistics
 {
+    public class Timers
+    {
+        #region Timers
+        public static Timer aTimer;
+        public static Timer uTimer;
+
+        void Start()
+        { 
+            //3000 = 3 seconds
+            uTimer = new Timer(2000);
+            uTimer.Elapsed += new ElapsedEventHandler(updateTimer);
+            uTimer.Enabled = true;
+
+            aTimer = new Timer(5000);
+            aTimer.Elapsed += new ElapsedEventHandler(afkTimer);
+            aTimer.Enabled = true;
+        }
+
+        #region afkTimer
+        static void afkTimer(object sender, ElapsedEventArgs args)
+        {
+            foreach (StatPl p in Statistics.PlayerList)
+            {
+                if (p.TSPlayer.X == p.lastPosX && p.TSPlayer.Y == p.lastPosY)
+                {
+                    p.AFKcount++;
+                    if (p.AFKcount > 60)   //60 * 5 = 300 = 5 minutes  (because timer triggers every 5 seconds)
+                    {
+                        p.AFK = true;
+                        p.TSPlayer.SendInfoMessage("You are afk, so this time will not count towards your rank");
+                    }
+                }
+                else
+                {
+                    p.TimePlayed = p.TimePlayed + 5;
+                    if (p.AFK)
+                        p.AFK = false;
+                }
+                p.lastAfkUpdate = DateTime.Now;
+                p.lastPosX = p.TSPlayer.TileX;
+                p.lastPosY = p.TSPlayer.TileY;
+            }
+        }
+        #endregion
+
+        #region updateTimer
+        static void updateTimer(object sender, ElapsedEventArgs args)
+        {
+            foreach (StatPl p in Statistics.PlayerList)
+            {
+                if (!p.AFK && p.TSPlayer.IsLoggedIn)
+                {
+                    p.lastTimeUpdate = DateTime.Now;
+                    Statistics.UpdatePlayer(p);
+                }
+            }
+        }
+        #endregion
+        #endregion
+    }
+
     [ApiVersion(1, 14)]
     public class Statistics : TerrariaPlugin
     {
-        public static List<TimePl> PlayerList = new List<TimePl>();
+        public static List<StatPl> PlayerList = new List<StatPl>();
 
         public static IDbConnection db;
 
@@ -46,10 +108,10 @@ namespace Statistics
 
                 Hook.GameInitialize.Deregister(this, OnInitialize);
                 Hook.NetGreetPlayer.Deregister(this, OnGreet);
-                Hook.GameUpdate.Deregister(this, OnUpdate);
+                //Hook.GameUpdate.Deregister(this, OnUpdate);
                 Hook.ServerLeave.Deregister(this, OnLeave);
                 Hook.ServerChat.Deregister(this, OnChat);
-                Hook.NetGetData.Deregister(this, GetData);
+                //Hook.NetGetData.Deregister(this, GetData);
                 TShockAPI.Hooks.PlayerHooks.PlayerPostLogin -= PostLogin;
             }
             base.Dispose(disposing);
@@ -62,14 +124,15 @@ namespace Statistics
             Hook.GameInitialize.Register(this, OnInitialize);
             Hook.NetGreetPlayer.Register(this, OnGreet);
             Hook.ServerLeave.Register(this, OnLeave);
-            Hook.GameUpdate.Register(this, OnUpdate);
+            //Hook.GameUpdate.Register(this, OnUpdate);
             Hook.ServerChat.Register(this, OnChat);
-            Hook.NetGetData.Register(this, GetData);
+            //Hook.NetGetData.Register(this, GetData);
             TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PostLogin;
 
             GetDataHandlers.InitGetDataHandler();
         }
 
+        //Setup and intialization
         #region OnInitialize
         public void OnInitialize(EventArgs args)
         {
@@ -82,11 +145,11 @@ namespace Statistics
         #region PostLogin
         public void PostLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
-            using (var reader = db.QueryReader("SELECT * FROM Players WHERE Name = @0", args.Player.UserAccountName))
+            using (var reader = db.QueryReader("SELECT * FROM Stats WHERE Name = @0", args.Player.UserAccountName))
             {
                 if (!reader.Read())
                 {
-                    db.Query("INSERT INTO Players (Name, Time, FirstLogin, LastSeen) VALUES (@0, @1, @2, @3)",
+                    db.Query("INSERT INTO Stats (Name, Time, FirstLogin, LastSeen) VALUES (@0, @1, @2, @3)",
                         args.Player.UserAccountName, 0, DateTime.Now.ToString("G"), "Now");
 
                     args.Player.SendInfoMessage("Now tracking your playing time (while not afk)");
@@ -98,8 +161,11 @@ namespace Statistics
         #region OnLeave
         public void OnLeave(LeaveEventArgs args)
         {
-            TimePl player = GetPlayer(args.Who);
-            UpdatePlayer(player);
+            StatPl player = GetPlayer(args.Who);
+            if (player != null)
+            {
+                UpdatePlayer(player);
+            }
 
             PlayerList.RemoveAll(p => p.Index == args.Who);
         }
@@ -108,7 +174,7 @@ namespace Statistics
         #region OnGreet
         public void OnGreet(GreetPlayerEventArgs args)
         {
-            PlayerList.Add(new TimePl(args.Who));
+            PlayerList.Add(new StatPl(args.Who));
         }
         #endregion
 
@@ -134,7 +200,7 @@ namespace Statistics
             {
                 try
                 {
-                    if (GetDataHandlers.HandlerGetData(type, player, data))
+                    if (DataHandler.GetDataHandlers.HandlerGetData(type, player, data))
                         args.Handled = true;
                 }
                 catch (Exception ex)
@@ -145,6 +211,60 @@ namespace Statistics
         }
         #endregion
 
+        #region Database
+        public void DatabaseInit()
+        {
+            if (TShock.Config.StorageType.ToLower() == "sqlite")
+            {
+                db = new SqliteConnection(string.Format("uri=file://{0},Version=3", Path.Combine(TShock.SavePath, "Statistics.sqlite")));
+            }
+            else if (TShock.Config.StorageType.ToLower() == "mysql")
+            {
+                try
+                {
+                    var host = TShock.Config.MySqlHost.Split(':');
+                    db = new MySqlConnection();
+                    db.ConnectionString =
+                        String.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4}",
+                        host[0],
+                        host.Length == 1 ? "3306" : host[1],
+                        TShock.Config.MySqlDbName,
+                        TShock.Config.MySqlUsername,
+                        TShock.Config.MySqlPassword
+                        );
+                }
+                catch (MySqlException x)
+                {
+                    Log.Error(x.ToString());
+                    throw new Exception("MySQL not setup correctly.");
+                }
+            }
+            else
+            {
+                throw new Exception("Invalid storage type.");
+            }
+
+            SqlTableCreator SQLCreator = new SqlTableCreator(db,
+                                             db.GetSqlType() == SqlType.Sqlite
+                                             ? (IQueryBuilder)new SqliteQueryCreator()
+                                             : new MysqlQueryCreator());
+
+            var table = new SqlTable("Stats",
+                new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
+                new SqlColumn("Name", MySqlDbType.String, 255) { Unique = true },
+                new SqlColumn("Time", MySqlDbType.Int32),
+                new SqlColumn("FirstLogin", MySqlDbType.String),
+                new SqlColumn("LastSeen", MySqlDbType.String),
+                new SqlColumn("Kills", MySqlDbType.Int32),
+                new SqlColumn("Deaths", MySqlDbType.Int32),
+                new SqlColumn("MobKills", MySqlDbType.Int32),
+                new SqlColumn("BossKills", MySqlDbType.Int32)
+                );
+            SQLCreator.EnsureExists(table);
+        }
+        #endregion
+
+        //Command
         #region Check
         public void Check(CommandArgs args)
         {
@@ -209,111 +329,48 @@ namespace Statistics
         }
         #endregion
 
+        //Gone
         #region OnUpdate
-        public void OnUpdate(EventArgs args)
-        {
-            DateTime now = DateTime.Now;
-            foreach (TimePl p in PlayerList)
-            {
-                if ((now - p.lastAfkUpdate).TotalSeconds > 5)
-                {
-                    if (p.TSPlayer.X == p.lastPosX && p.TSPlayer.Y == p.lastPosY)
-                    {
-                        p.AFKcount++;
-                        if (p.AFKcount > 300)
-                        {
-                            p.AFK = true;
-                            p.TSPlayer.SendInfoMessage("You are afk, so this time will not count towards your rank");
-                        }
-                    }
-                    else
-                    {
-                        p.TimePlayed = p.TimePlayed + 5;
-                        if (p.AFK)
-                            p.AFK = false;
-                    }
-                    p.lastAfkUpdate = DateTime.Now;
-                    p.lastPosX = p.TSPlayer.TileX;
-                    p.lastPosY = p.TSPlayer.TileY;
-                }
+        //public void OnUpdate(EventArgs args)
+        //{
+        //    DateTime now = DateTime.Now;
+        //    foreach (StatPl p in PlayerList)
+        //    {
+        //        if ((now - p.lastAfkUpdate).TotalSeconds > 5)
+        //        {
+        //            if (p.TSPlayer.X == p.lastPosX && p.TSPlayer.Y == p.lastPosY)
+        //            {
+        //                p.AFKcount++;
+        //                if (p.AFKcount > 300)
+        //                {
+        //                    p.AFK = true;
+        //                    p.TSPlayer.SendInfoMessage("You are afk, so this time will not count towards your rank");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                p.TimePlayed = p.TimePlayed + 5;
+        //                if (p.AFK)
+        //                    p.AFK = false;
+        //            }
+        //            p.lastAfkUpdate = DateTime.Now;
+        //            p.lastPosX = p.TSPlayer.TileX;
+        //            p.lastPosY = p.TSPlayer.TileY;
+        //        }
 
-                if ((now - p.lastTimeUpdate).TotalSeconds > 2)
-                {
-                    if (!p.AFK && p.TSPlayer.IsLoggedIn)
-                    {
-                        p.lastTimeUpdate = DateTime.Now;
-                        UpdateTime(p);
-                    }
-                }
-            }
-        }
+        //        if ((now - p.lastTimeUpdate).TotalSeconds > 2)
+        //        {
+        //            if (!p.AFK && p.TSPlayer.IsLoggedIn)
+        //            {
+        //                p.lastTimeUpdate = DateTime.Now;
+        //                UpdateTime(p);
+        //            }
+        //        }
+        //    }
+        //}
         #endregion
+        //Gone
 
-        #region UpdatePlayer
-        public void UpdatePlayer(TimePl player)
-        {
-            int time = 0;
-            int kills = 0;
-            int deaths = 0;
-            int mobkills = 0;
-            int bosskills = 0;
-
-            using (var reader = db.QueryReader("SELECT * FROM Players WHERE Name = @0",
-                player.TSPlayer.UserAccountName))
-            {
-                if (reader.Read())
-                {
-                    time = reader.Get<int>("Time");
-                    kills = reader.Get<int>("Kills");
-                    deaths = reader.Get<int>("Deaths");
-                    mobkills = reader.Get<int>("MobKills");
-                    bosskills = reader.Get<int>("BossKills");
-                }
-            }
-            int finK = kills + player.kills;
-            int finD = deaths + player.deaths;
-            int finMk = mobkills + player.mobkills;
-            int finBk = bosskills + player.bosskills;
-            int finT = time + player.TimePlayed;
-
-            string lastSeen = DateTime.UtcNow.ToString("G");
-            string Query = "UPDATE Players SET Time = @0, LastSeen = @1, Kills = @2," +
-                " Deaths = @3, MobKills = @4, BossKills = @5";
-
-            db.Query(Query, finT, lastSeen, finK, finD, finMk, finBk);
-
-            player.TimePlayed = 0;
-            player.kills = 0;
-            player.deaths = 0;
-            player.mobkills = 0;
-            player.bosskills = 0;
-        }
-        #endregion
-
-        #region GetPlayer
-        public static TimePl GetPlayer(int index)
-        {
-            foreach (TimePl player in PlayerList)
-            {
-                if (player.Index == index)
-                {
-                    return player;
-                }
-            }
-            return null;
-        }
-        public static TimePl GetPlayer(string name)
-        {
-            foreach (TimePl player in PlayerList)
-            {
-                if (player.Name == name)
-                {
-                    return player;
-                }
-            }
-            return null;
-        }
-        #endregion
 
         #region OnChat
         public void OnChat(ServerChatEventArgs args)
@@ -326,56 +383,47 @@ namespace Statistics
         }
         #endregion
 
-        #region Database
-        public void DatabaseInit()
+
+        //Player and statistics functions
+        #region UpdatePlayer
+        public static void UpdatePlayer(StatPl player)
         {
-            if (TShock.Config.StorageType.ToLower() == "sqlite")
+            try
             {
-                db = new SqliteConnection(string.Format("uri=file://{0},Version=3", Path.Combine(TShock.SavePath, "Time.sqlite")));
+                var lastSeen = DateTime.UtcNow.ToString("G");
+                db.Query("UPDATE Stats SET Kills = Kills + @0, Deaths = Deaths + @1, MobKills = MobKills + @2, "
+                    + "BossKills = BossKills + @3, LastSeen = @4 WHERE Name = @5", player.kills, player.deaths, player.mobkills,
+                    player.bosskills, lastSeen, player.TSPlayer.UserAccountName);
             }
-            else if (TShock.Config.StorageType.ToLower() == "mysql")
+            catch (Exception x)
             {
-                try
-                {
-                    var host = TShock.Config.MySqlHost.Split(':');
-                    db = new MySqlConnection();
-                    db.ConnectionString =
-                        String.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4}",
-                        host[0],
-                        host.Length == 1 ? "3306" : host[1],
-                        TShock.Config.MySqlDbName,
-                        TShock.Config.MySqlUsername,
-                        TShock.Config.MySqlPassword
-                        );
-                }
-                catch (MySqlException x)
-                {
-                    Log.Error(x.ToString());
-                    throw new Exception("MySQL not setup correctly.");
-                }
+                Log.ConsoleError(x.ToString());
             }
-            else
-            {
-                throw new Exception("Invalid storage type.");
-            }
+        }
+        #endregion
 
-            SqlTableCreator SQLCreator = new SqlTableCreator(db,
-                                             db.GetSqlType() == SqlType.Sqlite
-                                             ? (IQueryBuilder)new SqliteQueryCreator()
-                                             : new MysqlQueryCreator());
-
-            var table = new SqlTable("Players",
-                new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
-                new SqlColumn("Name", MySqlDbType.String, 255) { Unique = true },
-                new SqlColumn("Time", MySqlDbType.Int32),
-                new SqlColumn("FirstLogin", MySqlDbType.String),
-                new SqlColumn("LastSeen", MySqlDbType.String),
-                new SqlColumn("Kills", MySqlDbType.Int32),
-                new SqlColumn("Deaths", MySqlDbType.Int32),
-                new SqlColumn("MobKills", MySqlDbType.Int32),
-                new SqlColumn("BossKills", MySqlDbType.Int32)
-                );
-            SQLCreator.EnsureExists(table);
+        #region GetPlayer
+        public static StatPl GetPlayer(int index)
+        {
+            foreach (StatPl player in PlayerList)
+            {
+                if (player.Index == index)
+                {
+                    return player;
+                }
+            }
+            return null;
+        }
+        public static StatPl GetPlayer(string name)
+        {
+            foreach (StatPl player in PlayerList)
+            {
+                if (player.Name == name)
+                {
+                    return player;
+                }
+            }
+            return null;
         }
         #endregion
 
@@ -385,7 +433,7 @@ namespace Statistics
             int time = 0;
             string lastSeen = "";
             string joinedTime = "";
-            using (var reader = db.QueryReader("SELECT * FROM Players WHERE Name = @0", player))
+            using (var reader = db.QueryReader("SELECT * FROM Stats WHERE Name = @0", player))
             {
                 if (reader.Read())
                 {
@@ -428,7 +476,7 @@ namespace Statistics
             int mobKills;
             int bossKills;
 
-            using (var reader = db.QueryReader("SELECT * FROM Players WHERE Name = @0", ply))
+            using (var reader = db.QueryReader("SELECT * FROM Stats WHERE Name = @0", ply))
             {
                 if (reader.Read())
                 {
@@ -507,7 +555,7 @@ namespace Statistics
         #endregion
 
         #region UpdateTime
-        public void UpdateTime(TimePl player)
+        public void UpdateTime(StatPl player)
         {
             using (var reader = db.QueryReader("SELECT * FROM Players WHERE Name = @0", player.TSPlayer.UserAccountName))
             {
@@ -529,7 +577,7 @@ namespace Statistics
     }
 
     #region PlayerClass
-    public class TimePl
+    public class StatPl
     {
         public int Index;
         public float lastPosX { get; set; }
@@ -547,9 +595,9 @@ namespace Statistics
         public int mobkills;
         public int bosskills;
 
-        public TimePl KillingPlayer = null;
+        public StatPl KillingPlayer = null;
 
-        public TimePl(int index)
+        public StatPl(int index)
         {
             Index = index;
             lastPosX = TShock.Players[Index].X;
