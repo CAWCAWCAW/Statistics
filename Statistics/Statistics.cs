@@ -26,10 +26,9 @@ namespace Statistics
         public static Timer aTimer;
         public static Timer uTimer;
 
-        void Start()
+        public static void Start()
         { 
-            //3000 = 3 seconds
-            uTimer = new Timer(2000);
+            uTimer = new Timer(300000);
             uTimer.Elapsed += new ElapsedEventHandler(updateTimer);
             uTimer.Enabled = true;
 
@@ -39,7 +38,7 @@ namespace Statistics
         }
 
         #region afkTimer
-        static void afkTimer(object sender, ElapsedEventArgs args)
+        public static void afkTimer(object sender, ElapsedEventArgs args)
         {
             foreach (StatPl p in Statistics.PlayerList)
             {
@@ -68,12 +67,15 @@ namespace Statistics
         #region updateTimer
         static void updateTimer(object sender, ElapsedEventArgs args)
         {
-            foreach (StatPl p in Statistics.PlayerList)
+            lock (Statistics.PlayerList)
             {
-                if (!p.AFK && p.TSPlayer.IsLoggedIn)
+                foreach (StatPl p in Statistics.PlayerList)
                 {
-                    p.lastTimeUpdate = DateTime.Now;
-                    Statistics.UpdatePlayer(p);
+                    if (!p.AFK && p.TSPlayer.IsLoggedIn)
+                    {
+                        p.lastTimeUpdate = DateTime.Now;
+                        Statistics.UpdatePlayer(p);
+                    }
                 }
             }
         }
@@ -137,6 +139,8 @@ namespace Statistics
         public void OnInitialize(EventArgs args)
         {
             Commands.ChatCommands.Add(new Command("time.check", Check, "check"));
+            Timers.aTimer.Start();
+            Timers.uTimer.Start();
 
             DatabaseInit();
         }
@@ -253,14 +257,22 @@ namespace Statistics
                 new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
                 new SqlColumn("Name", MySqlDbType.String, 255) { Unique = true },
                 new SqlColumn("Time", MySqlDbType.Int32),
-                new SqlColumn("FirstLogin", MySqlDbType.String),
-                new SqlColumn("LastSeen", MySqlDbType.String),
+                new SqlColumn("FirstLogin", MySqlDbType.String, 255),
+                new SqlColumn("LastSeen", MySqlDbType.String, 255),
                 new SqlColumn("Kills", MySqlDbType.Int32),
                 new SqlColumn("Deaths", MySqlDbType.Int32),
                 new SqlColumn("MobKills", MySqlDbType.Int32),
                 new SqlColumn("BossKills", MySqlDbType.Int32)
                 );
             SQLCreator.EnsureExists(table);
+
+            var graphTable = new SqlTable("Graphs",
+                new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
+                new SqlColumn("PointX", MySqlDbType.Int32),
+                new SqlColumn("PointY", MySqlDbType.Int32),
+                new SqlColumn("Type", MySqlDbType.String)
+                );
+            SQLCreator.EnsureExists(graphTable);
         }
         #endregion
 
@@ -370,7 +382,6 @@ namespace Statistics
         //}
         #endregion
         //Gone
-
 
         #region OnChat
         public void OnChat(ServerChatEventArgs args)
@@ -575,34 +586,4 @@ namespace Statistics
             Order = 100;
         }
     }
-
-    #region PlayerClass
-    public class StatPl
-    {
-        public int Index;
-        public float lastPosX { get; set; }
-        public float lastPosY { get; set; }
-        public DateTime lastTimeUpdate = DateTime.Now;
-        public DateTime lastAfkUpdate = DateTime.Now;
-        public TSPlayer TSPlayer { get { return TShock.Players[Index]; } }
-        public int TimePlayed = 0;
-        public string Name { get { return Main.player[Index].name; } }
-        public bool AFK = false;
-        public int AFKcount = 0;
-        public int totalPoints { get; set; }
-        public int deaths;
-        public int kills;
-        public int mobkills;
-        public int bosskills;
-
-        public StatPl KillingPlayer = null;
-
-        public StatPl(int index)
-        {
-            Index = index;
-            lastPosX = TShock.Players[Index].X;
-            lastPosX = TShock.Players[Index].Y;
-        }
-    }
-    #endregion
 }
