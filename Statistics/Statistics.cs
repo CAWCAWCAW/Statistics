@@ -136,9 +136,9 @@ namespace Statistics
         public void OnInitialize(EventArgs args)
         {
             Commands.ChatCommands.Add(new Command("time.check", Check, "check"));
-            Commands.ChatCommands.Add(new Command("graph.set", Graph.graphCommand, "graph"));
-            Commands.ChatCommands.Add(new Command("tile.getAll", Graph.GetTiles, "gettiles") { AllowServer = true });
-            Commands.ChatCommands.Add(new Command("tile.wall.getAll", Graph.GetWalls, "getwalls") { AllowServer = true });
+            //Commands.ChatCommands.Add(new Command("graph.set", Graph.graphCommand, "graph"));
+            //Commands.ChatCommands.Add(new Command("tile.getAll", Graph.GetTiles, "gettiles") { AllowServer = true });
+            //Commands.ChatCommands.Add(new Command("tile.wall.getAll", Graph.GetWalls, "getwalls") { AllowServer = true });
 
             DatabaseInit();
         }
@@ -270,14 +270,14 @@ namespace Statistics
                 );
             SQLCreator.EnsureExists(table);
 
-            var graphTable = new SqlTable("Graphs",
-                new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
-                new SqlColumn("PointX", MySqlDbType.Int32),
-                new SqlColumn("PointY", MySqlDbType.Int32),
-                new SqlColumn("Type", MySqlDbType.String),
-                new SqlColumn("TopRightPoint", MySqlDbType.Int32)
-                );
-            SQLCreator.EnsureExists(graphTable);
+            //var graphTable = new SqlTable("Graphs",
+            //    new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
+            //    new SqlColumn("PointX", MySqlDbType.Int32),
+            //    new SqlColumn("PointY", MySqlDbType.Int32),
+            //    new SqlColumn("Type", MySqlDbType.String),
+            //    new SqlColumn("TopRightPoint", MySqlDbType.Int32)
+            //    );
+            //SQLCreator.EnsureExists(graphTable);
         }
         #endregion
 
