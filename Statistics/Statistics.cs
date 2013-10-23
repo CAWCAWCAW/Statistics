@@ -137,6 +137,8 @@ namespace Statistics
         {
             Commands.ChatCommands.Add(new Command("time.check", Check, "check"));
             Commands.ChatCommands.Add(new Command("graph.set", Graph.graphCommand, "graph"));
+            Commands.ChatCommands.Add(new Command("tile.getAll", Graph.GetTiles, "gettiles") { AllowServer = true });
+            Commands.ChatCommands.Add(new Command("tile.wall.getAll", Graph.GetWalls, "getwalls") { AllowServer = true });
 
             DatabaseInit();
         }
@@ -272,7 +274,8 @@ namespace Statistics
                 new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
                 new SqlColumn("PointX", MySqlDbType.Int32),
                 new SqlColumn("PointY", MySqlDbType.Int32),
-                new SqlColumn("Type", MySqlDbType.String)
+                new SqlColumn("Type", MySqlDbType.String),
+                new SqlColumn("TopRightPoint", MySqlDbType.Int32)
                 );
             SQLCreator.EnsureExists(graphTable);
         }
@@ -571,7 +574,7 @@ namespace Statistics
         public void CheckGroupStats(TSPlayer player, string groupName)
         {
             double totalTime = 0;
-            using (var reader = db.QueryReader("SELECT * FROM Players"))
+            using (var reader = db.QueryReader("SELECT * FROM Stats"))
             {
                 while (reader.Read())
                 {
@@ -579,7 +582,7 @@ namespace Statistics
                     User user = TShock.Users.GetUserByName(ply);
                     if (user.Group == groupName)
                     {
-                        using (var otherReader = db.QueryReader("SELECT * FROM Players WHERE Name = @0", ply))
+                        using (var otherReader = db.QueryReader("SELECT * FROM Stats WHERE Name = @0", ply))
                         {
                             totalTime += reader.Get<int>("Time");
                         }
