@@ -69,7 +69,7 @@ namespace Statistics
             byte hitDirection = (byte)args.Data.ReadByte();
             Int16 Damage = (Int16)args.Data.ReadInt16();
             bool Crit = args.Data.ReadBoolean();
-            var player = Statistics.GetPlayer(index);
+            var player = sTools.GetPlayer(index);
 
             if (Main.npc[npcID].target < 255)
             {
@@ -101,7 +101,7 @@ namespace Statistics
             byte hitDirection = (byte)args.Data.ReadByte();
             Int16 Damage = (Int16)args.Data.ReadInt16();
             bool PVP = args.Data.ReadBoolean();
-            var player = Statistics.GetPlayer(PlayerID);
+            var player = sTools.GetPlayer(PlayerID);
 
             if (player.KillingPlayer != null)
             {
@@ -126,13 +126,13 @@ namespace Statistics
             byte PlayerID = (byte)args.Data.ReadByte();
             byte hitDirection = (byte)args.Data.ReadByte();
             Int16 Damage = (Int16)args.Data.ReadInt16();
-            var player = Statistics.GetPlayer(PlayerID);
+            var player = sTools.GetPlayer(PlayerID);
             bool PVP = args.Data.ReadBoolean();
             byte Crit = (byte)args.Data.ReadByte();
 
             if (index != PlayerID)
             {
-                player.KillingPlayer = Statistics.GetPlayer(index);
+                player.KillingPlayer = sTools.GetPlayer(index);
             }
             else
             {

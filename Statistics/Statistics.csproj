@@ -56,10 +56,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataHandler.cs" />
-    <Compile Include="Graph.cs" />
-    <Compile Include="Statistics.cs" />
+    <Compile Include="Stat_Commands.cs" />
+    <Compile Include="Stat_Tools.cs" />
+    <Compile Include="_Graph.cs" />
+    <Compile Include="Stat_Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StatPlayer.cs" />
+    <Compile Include="Stat_Player.cs" />
+    <Compile Include="Stat_Timers.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
