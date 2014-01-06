@@ -119,7 +119,7 @@ namespace Statistics
 
                 sTools.populatePlayerStats(player, sTools.GetstoredPlayer(player.TSPlayer.UserAccountName));
                 Log.ConsoleInfo("Successfully linked account {0} with stored player {1}",
-                     args.Player.UserAccountName, storedplayer.name);
+                     args.Player.UserAccountName, sTools.GetstoredPlayer(player.TSPlayer.UserAccountName).name);
             }
         }
         #endregion
