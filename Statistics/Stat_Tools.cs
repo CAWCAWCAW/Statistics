@@ -173,6 +173,16 @@ namespace Statistics
             foreach (storedPlayer storedplayer in storedPlayers)
                 if (storedplayer.name.ToLower() == name.ToLower())
                     return storedplayer;
+
+            return null;
+        }
+
+        public static storedPlayer GetstoredPlayer(string AccountName, string AccountIP)
+        {
+            foreach (storedPlayer storedplayer in storedPlayers)
+                if (storedplayer.knownAccounts.Contains(AccountName) && storedplayer.knownAccounts.Contains(AccountIP))
+                    return storedplayer;
+
             return null;
         }
 

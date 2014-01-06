@@ -97,29 +97,33 @@ namespace Statistics
         #region PostLogin
         public void PostLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
-            sPlayer player = sTools.GetPlayer(args.Player.Index);
-
-            if (sTools.GetstoredPlayer(args.Player.UserAccountName) != null)
+            if (sTools.GetPlayer(args.Player.Index) != null)
             {
-                storedPlayer storedplayer = sTools.GetstoredPlayer(args.Player.UserAccountName);
+                sPlayer player = sTools.GetPlayer(args.Player.Index);
 
-                sTools.populatePlayerStats(player, storedplayer);
-                Log.ConsoleInfo("Successfully linked account {0} with stored player {1}", 
-                    args.Player.UserAccountName, storedplayer.name);
-            }
-            else
-            {
-                Log.ConsoleInfo("New stored player named {0} has been added", args.Player.UserAccountName);
-                sTools.storedPlayers.Add(new storedPlayer(args.Player.UserAccountName, DateTime.Now.ToString("G"), DateTime.Now.ToString("G"),
-                    0, 1, args.Player.UserAccountName, args.Player.IP, 0, 0, 0, 0));
+                if (sTools.GetstoredPlayer(args.Player.UserAccountName) != null)
+                {
+                    storedPlayer storedplayer = sTools.GetstoredPlayer(args.Player.UserAccountName);
 
-                sTools.db.Query("INSERT INTO Stats (Name, FirstLogin, LastSeen, Time, LoginCount, KnownAccounts, KnownIPs, Kills, Deaths, MobKills, BossKills)" +
-                    " VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)", args.Player.UserAccountName, DateTime.Now.ToString("G"),
-                    DateTime.Now.ToString("G"), 0, 1, args.Player.UserAccountName, args.Player.IP, 0, 0, 0, 0);
+                    sTools.populatePlayerStats(player, storedplayer);
+                    Log.ConsoleInfo("Successfully linked account {0} with stored player {1}",
+                        args.Player.UserAccountName, storedplayer.name);
+                    return;
+                }
+                else
+                {
+                    Log.ConsoleInfo("New stored player named {0} has been added", args.Player.UserAccountName);
+                    sTools.storedPlayers.Add(new storedPlayer(args.Player.UserAccountName, DateTime.Now.ToString("G"), DateTime.Now.ToString("G"),
+                        0, 1, args.Player.UserAccountName, args.Player.IP, 0, 0, 0, 0));
 
-                sTools.populatePlayerStats(player, sTools.GetstoredPlayer(player.TSPlayer.UserAccountName));
-                Log.ConsoleInfo("Successfully linked account {0} with stored player {1}",
-                     args.Player.UserAccountName, sTools.GetstoredPlayer(player.TSPlayer.UserAccountName).name);
+                    sTools.db.Query("INSERT INTO Stats (Name, FirstLogin, LastSeen, Time, LoginCount, KnownAccounts, KnownIPs, Kills, Deaths, MobKills, BossKills)" +
+                        " VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)", args.Player.UserAccountName, DateTime.Now.ToString("G"),
+                        DateTime.Now.ToString("G"), 0, 1, args.Player.UserAccountName, args.Player.IP, 0, 0, 0, 0);
+
+                    sTools.populatePlayerStats(player, sTools.storedPlayers[sTools.storedPlayers.Count - 1]);
+                    Log.ConsoleInfo("Successfully linked account {0} with stored player {1}",
+                         args.Player.UserAccountName, sTools.storedPlayers[sTools.storedPlayers.Count - 1].name);
+                }
             }
         }
         #endregion
