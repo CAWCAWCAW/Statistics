@@ -97,25 +97,30 @@ namespace Statistics
         #region PostLogin
         public void PostLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
-            storedPlayer storedplayer = sTools.GetPlayer(sTools.GetPlayer(args.Player.Index));
+            //storedPlayer storedplayer = sTools.GetPlayer(sTools.GetPlayer(args.Player.Index));
+            storedPlayer storedplayer = sTools.GetstoredPlayer(args.Player.UserAccountName);
             sPlayer player = sTools.GetPlayer(args.Player.Index);
 
             if (storedplayer != null)
             {
                 sTools.populatePlayerStats(player, storedplayer);
-                Console.WriteLine("Successfully linked account {0} with stored player {1}", args.Player.UserAccountName, storedplayer.name);
+                Log.ConsoleInfo("Successfully linked account {0} with stored player {1}", 
+                    args.Player.UserAccountName, storedplayer.name);
             }
             else
             {
-                Console.WriteLine("Added a new stored player named {0}", args.Player.UserAccountName);
+                Log.ConsoleInfo("New stored player named {0} has been added", args.Player.UserAccountName);
                 sTools.storedPlayers.Add(new storedPlayer(args.Player.UserAccountName, DateTime.Now.ToString("G"), DateTime.Now.ToString("G"),
                     0, 1, args.Player.UserAccountName, args.Player.IP, 0, 0, 0, 0));
 
                 sTools.db.Query("INSERT INTO Stats (Name, FirstLogin, LastSeen, Time, LoginCount, KnownAccounts, KnownIPs, Kills, Deaths, MobKills, BossKills)" +
                     " VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)", args.Player.UserAccountName, DateTime.Now.ToString("G"),
                     DateTime.Now.ToString("G"), 0, 1, args.Player.UserAccountName, args.Player.IP, 0, 0, 0, 0);
-            }
 
+                sTools.populatePlayerStats(player, sTools.GetstoredPlayer(player.TSPlayer.UserAccountName));
+                Log.ConsoleInfo("Successfully linked account {0} with stored player {1}",
+                     args.Player.UserAccountName, storedplayer.name);
+            }
         }
         #endregion
 

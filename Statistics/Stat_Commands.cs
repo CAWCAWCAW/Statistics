@@ -44,8 +44,16 @@ namespace Statistics
                         uixInfo.Add("Last seen: Now");
 
                         uixInfo.Add(string.Format("Logged in {0} times since registering", player.loginCount));
-                        uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
-                        uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
+                        try
+                        {
+                            uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
+                        }
+                        catch { uixInfo.Add("No known accounts found"); }
+                        try
+                        {
+                            uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
+                        }
+                        catch { uixInfo.Add("No known IPs found"); }
 
                         PaginationTools.SendPage(args.Player, pageNumber, uixInfo, new PaginationTools.Settings 
                         {
@@ -83,8 +91,16 @@ namespace Statistics
                     uixInfo.Add("Last seen: Now");
 
                     uixInfo.Add(string.Format("Logged in {0} times since registering", player.loginCount));
-                    uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
-                    uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
+                    try
+                    {
+                        uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
+                    }
+                    catch { uixInfo.Add("No known accounts found"); }
+                    try
+                    {
+                        uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
+                    }
+                    catch { uixInfo.Add("No known IPs found"); }
 
                     PaginationTools.SendPage(args.Player, pageNumber, uixInfo, new PaginationTools.Settings
                     {
@@ -113,8 +129,16 @@ namespace Statistics
                             sTools.timePlayed(storedplayer.totalTime)));
 
                         uixInfo.Add(string.Format("Logged in {0} times since registering", storedplayer.loginCount));
-                        uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", storedplayer.knownAccounts.Split(','))));
-                        uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", storedplayer.knownIPs.Split(','))));
+                        try
+                        {
+                            uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
+                        }
+                        catch { uixInfo.Add("No known accounts found"); }
+                        try
+                        {
+                            uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
+                        }
+                        catch { uixInfo.Add("No known IPs found"); }
 
                         PaginationTools.SendPage(args.Player, pageNumber, uixInfo, new PaginationTools.Settings
                         {
@@ -252,79 +276,109 @@ namespace Statistics
 
         public static void check_Time(CommandArgs args)
         {
-            if (args.Parameters.Count > 0)
-                if (args.Parameters[0] == "self")
-                {
-                    var player = sTools.GetPlayer(args.Player.Index);
+            if (args.Parameters[1] == "self")
+            {
+                sPlayer player = sTools.GetPlayer(args.Player.Index);
 
-                    if (player != null)
-                    {
-                        args.Player.SendInfoMessage("You have played for {0}", sTools.timePlayed(player.TimePlayed));
-                    }
+                if (player != null)
+                {
+                    args.Player.SendInfoMessage("You have played for {0}", sTools.timePlayed(player.TimePlayed));
+                }
+                else
+                    if (TSServerPlayer.Server.Name == args.Player.Name)
+                        args.Player.SendErrorMessage("The console has no stats to check");
                     else
                         args.Player.SendErrorMessage("Something broke. Please try again later");
+            }
+            else
+            {
+                sPlayer player = sTools.GetPlayer(args.Parameters[0]);
+
+                if (player != null)
+                {
+                    args.Player.SendInfoMessage("{0} has played for {1}", player.TSPlayer.UserAccountName,
+                        sTools.timePlayed(player.TimePlayed));
                 }
                 else
                 {
-                    var player = sTools.GetPlayer(args.Parameters[0]);
-
-                    if (player != null)
+                    storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[1]);
+                    if (storedplayer != null)
                     {
-                        args.Player.SendInfoMessage("{0} has played for {1}", player.TSPlayer.UserAccountName, 
-                            sTools.timePlayed(player.TimePlayed));
+                        args.Player.SendInfoMessage("{0} has played for {1}", storedplayer.name,
+                            sTools.timePlayed(storedplayer.totalTime));
                     }
                     else
+                    {
                         args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                        args.Parameters[0]);
+                        args.Parameters[1]);
+                    }
                 }
+            }
         }
 
         public static void check_Name(CommandArgs args)
         {
-            var player = TShock.Utils.FindPlayer(args.Parameters[0]);
+            var player = TShock.Utils.FindPlayer(args.Parameters[1]);
 
             if (player.Count > 1)
                 TShock.Utils.SendMultipleMatchError(args.Player, player.Select(ply => ply.Name));
             else if (player.Count == 1)
                 args.Player.SendInfoMessage("User name of {0} is {1}", player[0].Name, player[0].UserAccountName);
             else
-                args.Player.SendErrorMessage("No players matched your query '{0}'", args.Parameters[0]);
+                args.Player.SendErrorMessage("No players matched your query '{0}'", args.Parameters[1]);
         }
 
         public static void check_Kills(CommandArgs args)
         {
-            if (args.Parameters[0] == "self")
+            if (args.Parameters[1] == "self")
             {
                 var player = sTools.GetPlayer(args.Player.Index);
 
                 if (player != null)
                     args.Player.SendInfoMessage("You have killed {0} player{4}, {1} mob{5}, {2} boss{6} and died {3} time{7}",
                         player.kills, player.mobkills, player.bosskills, player.deaths,
-                        player.kills > 1 || player.kills == 0 ? "s" : "", player.mobkills > 1 || player.mobkills == 0 ? "s" : "",
-                        player.bosskills > 1 || player.bosskills == 0 ? "es" : "", player.deaths > 1 || player.deaths == 0 ? "s" : "");
+                        sTools.suffix(player.kills), sTools.suffix(player.mobkills),
+                        sTools.suffix(player.bosskills), sTools.suffix(player.deaths));
                 else
-                    args.Player.SendErrorMessage("Something broke. Please try again later");
+                    if (TSServerPlayer.Server.Name == args.Player.Name)
+                        args.Player.SendErrorMessage("The console has no stats to check");
+                    else
+                        args.Player.SendErrorMessage("Something broke. Please try again later");
             }
             else
             {
-                var player = sTools.GetPlayer(args.Parameters[0]);
+                sPlayer player = sTools.GetPlayer(args.Parameters[1]);
 
                 if (player != null)
                     args.Player.SendInfoMessage("{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",
                         player.TSPlayer.UserAccountName, player.kills, player.mobkills, player.bosskills, player.deaths,
-                        player.kills > 1 || player.kills == 0 ? "s" : "", player.mobkills > 1 || player.mobkills == 0 ? "s" : "",
-                        player.bosskills > 1 || player.bosskills == 0 ? "es" : "", player.deaths > 1 || player.deaths == 0 ? "s" : "");
+                        sTools.suffix(player.kills), sTools.suffix(player.mobkills),
+                        sTools.suffix(player.bosskills), sTools.suffix(player.deaths));
                 else
-                    args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                        args.Parameters[0]);
+                {
+                    storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[1]);
+
+                    if (storedplayer != null)
+                    {
+                        args.Player.SendInfoMessage("{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",
+                            storedplayer.name, storedplayer.kills, storedplayer.mobkills, storedplayer.bosskills, storedplayer.deaths,
+                            sTools.suffix(storedplayer.kills), sTools.suffix(storedplayer.mobkills),
+                            sTools.suffix(storedplayer.bosskills),sTools.suffix(storedplayer.deaths));
+                    }
+                    else
+                    {
+                        args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
+                        args.Parameters[1]);
+                    }
+                }
             }
         }
 
         public static void check_Afk(CommandArgs args)
         {
-            if (args.Parameters[0] == "self")
+            if (args.Parameters[1] == "self")
             {
-                var player = sTools.GetPlayer(args.Player.Index);
+                sPlayer player = sTools.GetPlayer(args.Player.Index);
 
                 if (player != null)
                     if (player.AFK)
@@ -336,18 +390,20 @@ namespace Statistics
             }
             else
             {
-                var player = sTools.GetPlayer(args.Parameters[0]);
+                sPlayer player = sTools.GetPlayer(args.Parameters[1]);
 
                 if (player != null)
                     if (player.AFK)
                         args.Player.SendInfoMessage("{0} has been away for {1} second{0}",
                             player.TSPlayer.UserAccountName, player.AFKcount,
-                            player.AFKcount > 1 || player.AFKcount == 0 ? "s" : "");
+                            sTools.suffix(player.AFKcount));
                     else
                         args.Player.SendInfoMessage("{0} is not away", player.TSPlayer.UserAccountName);
                 else
-                    args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                        args.Parameters[0]);
+                {
+                        args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
+                            args.Parameters[1]);
+                }
             }
         }
     }

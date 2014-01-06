@@ -133,7 +133,7 @@ namespace Statistics
                     count++;
                 }
             }
-            Console.WriteLine("Populated {0} stored player{1}", count, count > 1 || count == 0 ? "s" : "");
+            Console.WriteLine("Populated {0} stored player{1}", count, suffix(count));
 
             Stat_Timers.Start(args);
         }
@@ -206,7 +206,7 @@ namespace Statistics
                 player.TimePlayed = storedplayer.totalTime;
                 player.firstLogin = storedplayer.firstLogin;
                 player.lastSeen = DateTime.UtcNow.ToString("G");
-                player.loginCount = storedplayer.loginCount++;
+                player.loginCount = storedplayer.loginCount + 1;
                 player.knownAccounts = storedplayer.knownAccounts;
                 player.knownIPs = storedplayer.knownIPs;
 
@@ -255,7 +255,7 @@ namespace Statistics
 
         public static void registerCommands()
         {
-            Commands.ChatCommands.Add(new Command("stats.time.check", sCommands.stat_Check, "check") 
+            Commands.ChatCommands.Add(new Command("stats.check", sCommands.stat_Check, "check") 
             { 
                 HelpText = "Base command for the Statistics plugin. Allows you to view statistics about players" 
             });
@@ -291,7 +291,7 @@ namespace Statistics
                     storedplayer.mobkills, storedplayer.bosskills, storedplayer.knownAccounts,
                     storedplayer.knownIPs, storedplayer.loginCount, storedplayer.name);
             }
-            Log.ConsoleInfo("Log save complete");
+            Log.ConsoleInfo("Database save complete");
         }
 
         public static string suffix(int number)
