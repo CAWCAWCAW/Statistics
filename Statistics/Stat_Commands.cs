@@ -160,10 +160,10 @@ namespace Statistics
         {
             if (args.Parameters[0] == "self")
             {
-                sPlayer player = sTools.GetPlayer(args.Player.Index);
-
-                if (player != null)
+                if (sTools.GetPlayer(args.Player.Index) != null)
                 {
+                    sPlayer player = sTools.GetPlayer(args.Player.Index);
+
                     int pageNumber;
                     if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
                         return;
@@ -199,14 +199,14 @@ namespace Statistics
             }
             else
             {
-                sPlayer player = sTools.GetPlayer(args.Parameters[0]);
 
                 int pageNumber;
                 if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
                     return;
 
-                if (player != null)
+                if (sTools.GetPlayer(args.Parameters[0]) != null)
                 {
+                    sPlayer player = sTools.GetPlayer(args.Parameters[0]);
 
                     var uicInfo = new List<string>();
                     var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
@@ -232,10 +232,10 @@ namespace Statistics
                 }
                 else
                 {
-                    storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[0]);
-
-                    if (storedplayer != null)
+                    if (sTools.GetstoredPlayer(args.Parameters[0]) != null)
                     {
+                        storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[0]);
+
                         var uicInfo = new List<string>();
                         var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
                         var time_2 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen));
@@ -278,10 +278,11 @@ namespace Statistics
         {
             if (args.Parameters[1] == "self")
             {
-                sPlayer player = sTools.GetPlayer(args.Player.Index);
+                
 
-                if (player != null)
+                if (sTools.GetPlayer(args.Player.Index) != null)
                 {
+                    sPlayer player = sTools.GetPlayer(args.Player.Index);
                     args.Player.SendInfoMessage("You have played for {0}", sTools.timePlayed(player.TimePlayed));
                 }
                 else
@@ -292,18 +293,20 @@ namespace Statistics
             }
             else
             {
-                sPlayer player = sTools.GetPlayer(args.Parameters[0]);
+               
 
-                if (player != null)
+                if (sTools.GetPlayer(args.Parameters[0]) != null)
                 {
+                    sPlayer player = sTools.GetPlayer(args.Parameters[0]);
                     args.Player.SendInfoMessage("{0} has played for {1}", player.TSPlayer.UserAccountName,
                         sTools.timePlayed(player.TimePlayed));
                 }
                 else
                 {
-                    storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[1]);
-                    if (storedplayer != null)
+                    
+                    if (sTools.GetstoredPlayer(args.Parameters[1]) != null)
                     {
+                        storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[1]);
                         args.Player.SendInfoMessage("{0} has played for {1}", storedplayer.name,
                             sTools.timePlayed(storedplayer.totalTime));
                     }
@@ -332,13 +335,17 @@ namespace Statistics
         {
             if (args.Parameters[1] == "self")
             {
-                var player = sTools.GetPlayer(args.Player.Index);
 
-                if (player != null)
+
+                if (sTools.GetPlayer(args.Player.Index) != null)
+                {
+                    sPlayer player = sTools.GetPlayer(args.Player.Index);
+
                     args.Player.SendInfoMessage("You have killed {0} player{4}, {1} mob{5}, {2} boss{6} and died {3} time{7}",
                         player.kills, player.mobkills, player.bosskills, player.deaths,
                         sTools.suffix(player.kills), sTools.suffix(player.mobkills),
                         sTools.suffix(player.bosskills), sTools.suffix(player.deaths));
+                }
                 else
                     if (TSServerPlayer.Server.Name == args.Player.Name)
                         args.Player.SendErrorMessage("The console has no stats to check");
@@ -347,23 +354,27 @@ namespace Statistics
             }
             else
             {
-                sPlayer player = sTools.GetPlayer(args.Parameters[1]);
 
-                if (player != null)
+
+                if (sTools.GetPlayer(args.Parameters[1]) != null)
+                {
+                    sPlayer player = sTools.GetPlayer(args.Parameters[1]);
                     args.Player.SendInfoMessage("{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",
                         player.TSPlayer.UserAccountName, player.kills, player.mobkills, player.bosskills, player.deaths,
                         sTools.suffix(player.kills), sTools.suffix(player.mobkills),
                         sTools.suffix(player.bosskills), sTools.suffix(player.deaths));
+                }
                 else
                 {
-                    storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[1]);
+                    
 
-                    if (storedplayer != null)
+                    if (sTools.GetstoredPlayer(args.Parameters[1]) != null)
                     {
+                        storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[1]);
                         args.Player.SendInfoMessage("{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",
                             storedplayer.name, storedplayer.kills, storedplayer.mobkills, storedplayer.bosskills, storedplayer.deaths,
                             sTools.suffix(storedplayer.kills), sTools.suffix(storedplayer.mobkills),
-                            sTools.suffix(storedplayer.bosskills),sTools.suffix(storedplayer.deaths));
+                            sTools.suffix(storedplayer.bosskills), sTools.suffix(storedplayer.deaths));
                     }
                     else
                     {
@@ -378,31 +389,35 @@ namespace Statistics
         {
             if (args.Parameters[1] == "self")
             {
-                sPlayer player = sTools.GetPlayer(args.Player.Index);
-
-                if (player != null)
+                if (sTools.GetPlayer(args.Player.Index) != null)
+                {
+                    sPlayer player = sTools.GetPlayer(args.Player.Index);
                     if (player.AFK)
                         args.Player.SendInfoMessage("You have been away for {0} seconds", player.AFKcount);
                     else
                         args.Player.SendInfoMessage("You are not away");
+                }
                 else
                     args.Player.SendErrorMessage("Something broke. Please try again later");
             }
             else
             {
-                sPlayer player = sTools.GetPlayer(args.Parameters[1]);
 
-                if (player != null)
+
+                if (sTools.GetPlayer(args.Parameters[1]) != null)
+                {
+                    sPlayer player = sTools.GetPlayer(args.Parameters[1]);
                     if (player.AFK)
                         args.Player.SendInfoMessage("{0} has been away for {1} second{0}",
                             player.TSPlayer.UserAccountName, player.AFKcount,
                             sTools.suffix(player.AFKcount));
                     else
                         args.Player.SendInfoMessage("{0} is not away", player.TSPlayer.UserAccountName);
+                }
                 else
                 {
-                        args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                            args.Parameters[1]);
+                    args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
+                        args.Parameters[1]);
                 }
             }
         }

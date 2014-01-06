@@ -275,7 +275,7 @@ namespace Statistics
             handler.RegisterSubcommand("kills", sCommands.check_Kills, "stats.kills", "stats.*");
             handler.RegisterSubcommand("name", sCommands.check_Name, "stats.name", "stats.*");
 
-            handler.HelpText = "Valid subcommands of /check:|[time \\ afk \\ kills]";
+            handler.HelpText = "Valid subcommands of /check:|[time \\ afk \\ kills]|Syntax: /check [option] [playerName \\ self]";
         }
 
         public static void saveDatabase()

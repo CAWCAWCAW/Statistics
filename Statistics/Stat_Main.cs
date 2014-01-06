@@ -97,12 +97,12 @@ namespace Statistics
         #region PostLogin
         public void PostLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
-            //storedPlayer storedplayer = sTools.GetPlayer(sTools.GetPlayer(args.Player.Index));
-            storedPlayer storedplayer = sTools.GetstoredPlayer(args.Player.UserAccountName);
             sPlayer player = sTools.GetPlayer(args.Player.Index);
 
-            if (storedplayer != null)
+            if (sTools.GetstoredPlayer(args.Player.UserAccountName) != null)
             {
+                storedPlayer storedplayer = sTools.GetstoredPlayer(args.Player.UserAccountName);
+
                 sTools.populatePlayerStats(player, storedplayer);
                 Log.ConsoleInfo("Successfully linked account {0} with stored player {1}", 
                     args.Player.UserAccountName, storedplayer.name);
