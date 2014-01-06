@@ -24,10 +24,10 @@ namespace Statistics
         {
             if (args.Parameters[0] == "self")
             {
-                sPlayer player = sTools.GetPlayer(args.Player.Index);
-
-                if (player != null)
+                if (sTools.GetPlayer(args.Player.Index) != null)
                 {
+                    sPlayer player = sTools.GetPlayer(args.Player.Index);
+
                     int pageNumber;
                     if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
                         return;

@@ -148,12 +148,9 @@ namespace Statistics
         public static sPlayer GetPlayer(int index)
         {
             foreach (sPlayer player in sTools.splayers)
-            {
                 if (player.Index == index)
-                {
                     return player;
-                }
-            }
+
             return null;
         }
         /// <summary>
@@ -164,22 +161,9 @@ namespace Statistics
         public static sPlayer GetPlayer(string name)
         {
             foreach (sPlayer player in sTools.splayers)
-                if (player.TSPlayer.UserAccountName.ToLower() == name.ToLower())
-                    return player;
-
-            return null;
-        }
-
-        /// <summary>
-        /// Returns a stored player through searching with an sPlayer. Only usable after a player has logged in
-        /// </summary>
-        /// <param name="player"></param>
-        /// <returns>a stored player with the same UserAccountName</returns>
-        public static storedPlayer GetPlayer(sPlayer player)
-        {
-            foreach (storedPlayer storedplayer in storedPlayers)
-                if (storedplayer.name.ToLower() == player.TSPlayer.UserAccountName.ToLower())
-                    return storedplayer;
+                if (player.TSPlayer.IsLoggedIn)
+                    if (player.TSPlayer.UserAccountName.ToLower() == name.ToLower())
+                        return player;
 
             return null;
         }
@@ -245,7 +229,7 @@ namespace Statistics
         {
             try
             {
-                populateStoredStats(player, GetPlayer(player));
+                populateStoredStats(player, GetstoredPlayer(player.TSPlayer.UserAccountName));
             }
             catch (Exception x)
             {
@@ -281,7 +265,7 @@ namespace Statistics
         public static void saveDatabase()
         {
             foreach (sPlayer player in splayers)
-                populateStoredStats(player, GetPlayer(player));
+                populateStoredStats(player, GetstoredPlayer(player.TSPlayer.UserAccountName));
 
             foreach (storedPlayer storedplayer in storedPlayers)
             {
