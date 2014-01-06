@@ -136,6 +136,12 @@ namespace Statistics
         public void OnGreet(GreetPlayerEventArgs args)
         {
             sTools.splayers.Add(new sPlayer(args.Who));
+
+            if (!TShock.Config.DisableUUIDLogin)
+            {
+                if (TShock.Players[args.Who].IsLoggedIn)
+                    PostLogin(new TShockAPI.Hooks.PlayerPostLoginEventArgs(TShock.Players[args.Who]));
+            }
         }
         #endregion
 

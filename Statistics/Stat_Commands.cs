@@ -72,7 +72,6 @@ namespace Statistics
 
                 if (player != null)
                 {
-
                     var uixInfo = new List<string>();
                     var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
 
