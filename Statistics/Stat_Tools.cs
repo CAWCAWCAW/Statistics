@@ -68,16 +68,16 @@ namespace Statistics
 
             var table = new SqlTable("Stats",
                 new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
-                new SqlColumn("Name", MySqlDbType.Text, 255) { Unique = true },
+                new SqlColumn("Name", MySqlDbType.VarChar, 50) { Unique = true },
                 new SqlColumn("Time", MySqlDbType.Int32),
-                new SqlColumn("FirstLogin", MySqlDbType.Text, 255),
-                new SqlColumn("LastSeen", MySqlDbType.Text, 255),
+                new SqlColumn("FirstLogin", MySqlDbType.VarChar),
+                new SqlColumn("LastSeen", MySqlDbType.VarChar),
                 new SqlColumn("Kills", MySqlDbType.Int32),
                 new SqlColumn("Deaths", MySqlDbType.Int32),
                 new SqlColumn("MobKills", MySqlDbType.Int32),
                 new SqlColumn("BossKills", MySqlDbType.Int32),
-                new SqlColumn("KnownAccounts", MySqlDbType.Text, 255),
-                new SqlColumn("KnownIPs", MySqlDbType.Text, 255),
+                new SqlColumn("KnownAccounts", MySqlDbType.VarChar),
+                new SqlColumn("KnownIPs", MySqlDbType.VarChar),
                 new SqlColumn("LoginCount", MySqlDbType.Int32)
                 );
             SQLCreator.EnsureExists(table);
