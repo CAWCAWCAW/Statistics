@@ -70,14 +70,14 @@ namespace Statistics
                 new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
                 new SqlColumn("Name", MySqlDbType.VarChar, 50) { Unique = true },
                 new SqlColumn("Time", MySqlDbType.Int32),
-                new SqlColumn("FirstLogin", MySqlDbType.VarChar),
-                new SqlColumn("LastSeen", MySqlDbType.VarChar),
+                new SqlColumn("FirstLogin", MySqlDbType.Text),
+                new SqlColumn("LastSeen", MySqlDbType.Text),
                 new SqlColumn("Kills", MySqlDbType.Int32),
                 new SqlColumn("Deaths", MySqlDbType.Int32),
                 new SqlColumn("MobKills", MySqlDbType.Int32),
                 new SqlColumn("BossKills", MySqlDbType.Int32),
-                new SqlColumn("KnownAccounts", MySqlDbType.VarChar),
-                new SqlColumn("KnownIPs", MySqlDbType.VarChar),
+                new SqlColumn("KnownAccounts", MySqlDbType.Text),
+                new SqlColumn("KnownIPs", MySqlDbType.Text),
                 new SqlColumn("LoginCount", MySqlDbType.Int32)
                 );
             SQLCreator.EnsureExists(table);
