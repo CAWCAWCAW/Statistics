@@ -38,7 +38,7 @@ namespace Statistics
             {
                 if (player.TSPlayer.X == player.lastPosX && player.TSPlayer.Y == player.lastPosY)
                 {
-                    player.AFKcount++;
+                    player.AFKcount += 5;
                     if (player.AFKcount > 60)
                     {
                         if (!player.AFK)
@@ -53,7 +53,7 @@ namespace Statistics
                 }
                 else
                 {
-                    player.TimePlayed = player.TimePlayed + 5;
+                    player.TimePlayed += 5;
                     if (player.AFK)
                     {
                         player.AFK = false;
