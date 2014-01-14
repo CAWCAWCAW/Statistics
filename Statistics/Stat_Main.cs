@@ -101,7 +101,7 @@ namespace Statistics
             {
                 sPlayer player = sTools.GetPlayer(args.Player.Index);
 
-                if (sTools.GetstoredPlayer(args.Player.UserAccountName) != null)
+                if (sTools.GetstoredPlayer(args.Player.UserAccountName).Count == 1)
                 {
                     storedPlayer storedplayer = sTools.GetstoredPlayer(args.Player.UserAccountName)[0];
 
