@@ -39,7 +39,7 @@ namespace Statistics
                 if (player.TSPlayer.X == player.lastPosX && player.TSPlayer.Y == player.lastPosY)
                 {
                     player.AFKcount += 5;
-                    if (player.AFKcount > 60)
+                    if (player.AFKcount > 300)
                     {
                         if (!player.AFK)
                         {

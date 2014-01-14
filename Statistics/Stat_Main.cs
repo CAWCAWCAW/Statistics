@@ -103,7 +103,7 @@ namespace Statistics
 
                 if (sTools.GetstoredPlayer(args.Player.UserAccountName) != null)
                 {
-                    storedPlayer storedplayer = sTools.GetstoredPlayer(args.Player.UserAccountName);
+                    storedPlayer storedplayer = sTools.GetstoredPlayer(args.Player.UserAccountName)[0];
 
                     sTools.populatePlayerStats(player, storedplayer);
                     Log.ConsoleInfo("Successfully linked account {0} with stored player {1}",
@@ -135,9 +135,9 @@ namespace Statistics
             if (player != null)
             {
                 sTools.UpdatePlayer(player);
-            }
 
-            sTools.splayers.RemoveAll(p => p.Index == args.Who);
+                sTools.splayers.RemoveAll(p => p.Index == args.Who);
+            }
         }
         #endregion
 

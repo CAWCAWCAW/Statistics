@@ -158,23 +158,33 @@ namespace Statistics
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static sPlayer GetPlayer(string name)
+        public static List<sPlayer> GetPlayer(string name)
         {
+            var matches = new List<sPlayer>();
             foreach (sPlayer player in sTools.splayers)
                 if (player.TSPlayer.IsLoggedIn)
+                {
+                    if (player.TSPlayer.UserAccountName.ToLower().Contains(name.ToLower()) && !matches.Contains(player))
+                        matches.Add(player);
                     if (player.TSPlayer.UserAccountName.ToLower() == name.ToLower())
-                        return player;
+                        return new List<sPlayer> { player };
+                }
 
-            return null;
+            return matches;
         }
 
-        public static storedPlayer GetstoredPlayer(string name)
+        public static List<storedPlayer> GetstoredPlayer(string name)
         {
+            var matches = new List<storedPlayer>();
             foreach (storedPlayer storedplayer in storedPlayers)
+            {
                 if (storedplayer.name.ToLower() == name.ToLower())
-                    return storedplayer;
+                    return new List<storedPlayer> { storedplayer };
+                if (storedplayer.name.ToLower().Contains(name.ToLower()) && !matches.Contains(storedplayer))
+                    matches.Add(storedplayer);
+            }
 
-            return null;
+            return matches;
         }
 
         public static storedPlayer GetstoredPlayer(string AccountName, string AccountIP)
@@ -239,7 +249,7 @@ namespace Statistics
         {
             try
             {
-                populateStoredStats(player, GetstoredPlayer(player.TSPlayer.UserAccountName));
+                populateStoredStats(player, GetstoredPlayer(player.TSPlayer.UserAccountName)[0]);
             }
             catch (Exception x)
             {
@@ -275,15 +285,14 @@ namespace Statistics
         public static void saveDatabase()
         {
             foreach (sPlayer player in splayers)
-                populateStoredStats(player, GetstoredPlayer(player.TSPlayer.UserAccountName));
+                populateStoredStats(player, GetstoredPlayer(player.TSPlayer.UserAccountName)[0]);
 
             foreach (storedPlayer storedplayer in storedPlayers)
             {
                 db.Query("UPDATE Stats SET Time = @0, LastSeen = @1, Kills = @2, Deaths = @3, MobKills = @4, " +
-                    "BossKills = @5, KnownAccounts = @6, KnownIPs = @7, LoginCount = @8 WHERE Name = @9",
+                    "BossKills = @5, LoginCount = @6 WHERE Name = @7",
                     storedplayer.totalTime, DateTime.Now.ToString("G"), storedplayer.kills, storedplayer.deaths,
-                    storedplayer.mobkills, storedplayer.bosskills, storedplayer.knownAccounts,
-                    storedplayer.knownIPs, storedplayer.loginCount, storedplayer.name);
+                    storedplayer.mobkills, storedplayer.bosskills, storedplayer.loginCount, storedplayer.name);
             }
             Log.ConsoleInfo("Database save complete");
         }

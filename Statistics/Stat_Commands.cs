@@ -20,6 +20,8 @@ namespace Statistics
     public class sCommands
     {
         /* Yama's suggestions */
+
+        #region UI_Extended
         public static void UI_Extended(CommandArgs args)
         {
             if (args.Parameters.Count > 0)
@@ -74,18 +76,21 @@ namespace Statistics
                 }
                 else
                 {
-                    sPlayer player = sTools.GetPlayer(args.Parameters[0]);
+                    string name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length - 2);
 
                     int pageNumber;
-                    if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
+                    if (!PaginationTools.TryParsePageNumber(args.Parameters, string.Join(" ", args.Parameters).Length - 1,
+                        args.Player, out pageNumber))
                         return;
 
-                    if (player != null)
+                    if (sTools.GetPlayer(name).Count == 1)
                     {
+                        sPlayer player = sTools.GetPlayer(name)[0];
+
                         var uixInfo = new List<string>();
                         var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
 
-                        uixInfo.Add(string.Format("UIX info for {0}", args.Parameters[0]));
+                        uixInfo.Add(string.Format("UIX info for {0}", name));
 
                         uixInfo.Add(string.Format("First login: {0} ({1} ago)",
                             player.firstLogin, sTools.timeSpanPlayed(time_1)));
@@ -109,20 +114,23 @@ namespace Statistics
                             HeaderFormat = "Extended User Information [Page {0} of {1}]",
                             HeaderTextColor = Color.Lime,
                             LineTextColor = Color.White,
-                            FooterFormat = string.Format("/uix {0} {1} for more", args.Parameters[0], pageNumber + 1),
+                            FooterFormat = string.Format("/uix {0} {1} for more", name, pageNumber + 1),
                             FooterTextColor = Color.Lime
                         });
                     }
+                    else if (sTools.GetPlayer(name).Count > 1)
+                    {
+                        TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetPlayer(name).Select(p => p.Name));
+                    }
                     else
                     {
-                        storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[0]);
-
-                        if (storedplayer != null)
+                        if (sTools.GetstoredPlayer(name).Count == 1)
                         {
+                            storedPlayer storedplayer = sTools.GetstoredPlayer(name)[0];
                             var uixInfo = new List<string>();
                             var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
 
-                            uixInfo.Add(string.Format("UIX info for {0}", args.Parameters[0]));
+                            uixInfo.Add(string.Format("UIX info for {0}", name));
 
                             uixInfo.Add(string.Format("First login: {0} ({1} ago)",
                                 storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
@@ -133,12 +141,12 @@ namespace Statistics
                             uixInfo.Add(string.Format("Logged in {0} times since registering", storedplayer.loginCount));
                             try
                             {
-                                uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
+                                uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", storedplayer.knownAccounts.Split(','))));
                             }
                             catch { uixInfo.Add("No known accounts found"); }
                             try
                             {
-                                uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
+                                uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", storedplayer.knownIPs.Split(','))));
                             }
                             catch { uixInfo.Add("No known IPs found"); }
 
@@ -147,20 +155,27 @@ namespace Statistics
                                 HeaderFormat = "Extended User Information [Page {0} of {1}]",
                                 HeaderTextColor = Color.Lime,
                                 LineTextColor = Color.White,
-                                FooterFormat = string.Format("/uix {0} {1} for more", args.Parameters[0], pageNumber + 1),
+                                FooterFormat = string.Format("/uix {0} {1} for more", name, pageNumber + 1),
                                 FooterTextColor = Color.Lime
                             });
                         }
+                        else if (sTools.GetstoredPlayer(name).Count > 1)
+                        {
+                            TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetstoredPlayer(name).Select(
+                                p => p.name));
+                        }
                         else
                             args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                            args.Parameters[0]);
+                            name);
                     }
                 }
             }
             else
                 args.Player.SendErrorMessage("Invalid syntax. Try /uix [playerName]");
         }
+        #endregion
 
+        #region UI_Character
         public static void UI_Character(CommandArgs args)
         {
             if (args.Parameters.Count > 0)
@@ -206,19 +221,21 @@ namespace Statistics
                 }
                 else
                 {
+                    string name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length - 2);
 
                     int pageNumber;
-                    if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
+                    if (!PaginationTools.TryParsePageNumber(args.Parameters, string.Join(" ", args.Parameters).Length - 1,
+                        args.Player, out pageNumber))
                         return;
 
-                    if (sTools.GetPlayer(args.Parameters[0]) != null)
+                    if (sTools.GetPlayer(name).Count == 1)
                     {
-                        sPlayer player = sTools.GetPlayer(args.Parameters[0]);
+                        sPlayer player = sTools.GetPlayer(name)[0];
 
                         var uicInfo = new List<string>();
                         var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
 
-                        uicInfo.Add(string.Format("Character info for {0}", args.Parameters[0]));
+                        uicInfo.Add(string.Format("Character info for {0}", name));
 
                         uicInfo.Add(string.Format("First login: {0} ({1} ago)",
                             player.firstLogin, sTools.timeSpanPlayed(time_1)));
@@ -233,21 +250,25 @@ namespace Statistics
                             HeaderFormat = "Extended User Information [Page {0} of {1}]",
                             HeaderTextColor = Color.Lime,
                             LineTextColor = Color.White,
-                            FooterFormat = string.Format("/uic {0} {1} for more", args.Parameters[0], pageNumber + 1),
+                            FooterFormat = string.Format("/uic {0} {1} for more", name, pageNumber + 1),
                             FooterTextColor = Color.Lime
                         });
                     }
+                    else if (sTools.GetPlayer(name).Count > 1)
+                    {
+                        TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetPlayer(name).Select(p => p.Name));
+                    }
                     else
                     {
-                        if (sTools.GetstoredPlayer(args.Parameters[0]) != null)
+                        if (sTools.GetstoredPlayer(name).Count == 1)
                         {
-                            storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[0]);
+                            storedPlayer storedplayer = sTools.GetstoredPlayer(name)[0];
 
                             var uicInfo = new List<string>();
                             var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
                             var time_2 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen));
 
-                            uicInfo.Add(string.Format("Character info for {0}", args.Parameters[0]));
+                            uicInfo.Add(string.Format("Character info for {0}", name));
 
                             uicInfo.Add(string.Format("First login: {0} ({1} ago)",
                                 storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
@@ -263,9 +284,14 @@ namespace Statistics
                                 HeaderFormat = "Character Information [Page {0} of {1}]",
                                 HeaderTextColor = Color.Lime,
                                 LineTextColor = Color.White,
-                                FooterFormat = string.Format("/uic {0} {1} for more", args.Parameters[0], pageNumber + 1),
+                                FooterFormat = string.Format("/uic {0} {1} for more", name, pageNumber + 1),
                                 FooterTextColor = Color.Lime
                             });
+                        }
+                        else if (sTools.GetstoredPlayer(name).Count > 1)
+                        {
+                            TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetstoredPlayer(name).Select(
+                                p => p.name));
                         }
                         else
                             args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
@@ -276,6 +302,8 @@ namespace Statistics
             else
                 args.Player.SendErrorMessage("Invalid syntax. Try /uic [playerName]");
         }
+        #endregion
+
         /* ------------------ */
 
 
@@ -284,6 +312,7 @@ namespace Statistics
             sTools.handler.RunSubcommand(args);
         }
 
+        #region check_Time
         public static void check_Time(CommandArgs args)
         {
             if (args.Parameters.Count > 1)
@@ -303,27 +332,36 @@ namespace Statistics
                 }
                 else
                 {
+                    string name = string.Join(" ", args.Parameters).Substring(1, string.Join(" ", args.Parameters).Length - 1);
 
-
-                    if (sTools.GetPlayer(args.Parameters[0]) != null)
+                    if (sTools.GetPlayer(name).Count == 1)
                     {
-                        sPlayer player = sTools.GetPlayer(args.Parameters[0]);
+                        sPlayer player = sTools.GetPlayer(name)[0];
                         args.Player.SendInfoMessage("{0} has played for {1}", player.TSPlayer.UserAccountName,
                             sTools.timePlayed(player.TimePlayed));
                     }
+                    else if (sTools.GetPlayer(name).Count > 1)
+                    {
+                        TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetPlayer(name).Select(
+                            p => p.Name));
+                    }
                     else
                     {
-
-                        if (sTools.GetstoredPlayer(args.Parameters[1]) != null)
+                        if (sTools.GetstoredPlayer(name).Count == 1)
                         {
-                            storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[1]);
+                            storedPlayer storedplayer = sTools.GetstoredPlayer(name)[0];
                             args.Player.SendInfoMessage("{0} has played for {1}", storedplayer.name,
                                 sTools.timePlayed(storedplayer.totalTime));
+                        }
+                        else if (sTools.GetstoredPlayer(name).Count > 1)
+                        {
+                            TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetstoredPlayer(name).Select(
+                            p => p.name));
                         }
                         else
                         {
                             args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                            args.Parameters[1]);
+                            name);
                         }
                     }
                 }
@@ -331,25 +369,32 @@ namespace Statistics
             else
                 args.Player.SendErrorMessage("Invalid syntax. Try /check time [playerName]");
         }
+        #endregion
 
+        #region check_Name
         public static void check_Name(CommandArgs args)
         {
             if (args.Parameters.Count > 1)
             {
-
-                var player = TShock.Utils.FindPlayer(args.Parameters[1]);
+                string name = string.Join(" ", args.Parameters).Substring(1, string.Join(" ", args.Parameters).Length - 1);
+                var player = TShock.Utils.FindPlayer(name);
 
                 if (player.Count > 1)
                     TShock.Utils.SendMultipleMatchError(args.Player, player.Select(ply => ply.Name));
                 else if (player.Count == 1)
-                    args.Player.SendInfoMessage("User name of {0} is {1}", player[0].Name, player[0].UserAccountName);
+                    if (player[0].IsLoggedIn)
+                        args.Player.SendInfoMessage("User name of {0} is {1}", player[0].Name, player[0].UserAccountName);
+                    else
+                        args.Player.SendErrorMessage("{0} is not logged in", player[0].Name);
                 else
-                    args.Player.SendErrorMessage("No players matched your query '{0}'", args.Parameters[1]);
+                    args.Player.SendErrorMessage("No players matched your query '{0}'", name);
             }
             else
                 args.Player.SendErrorMessage("Invalid syntax. Try /check name [playerName]");
         }
+        #endregion
 
+        #region check_Kills
         public static void check_Kills(CommandArgs args)
         {
             if (args.Parameters.Count > 1)
@@ -373,32 +418,40 @@ namespace Statistics
                 }
                 else
                 {
-
-
-                    if (sTools.GetPlayer(args.Parameters[1]) != null)
+                    string name = string.Join(" ", args.Parameters).Substring(1, string.Join(" ", args.Parameters).Length - 1);
+                    
+                    if (sTools.GetPlayer(name).Count == 1)
                     {
-                        sPlayer player = sTools.GetPlayer(args.Parameters[1]);
+                        sPlayer player = sTools.GetPlayer(args.Parameters[1])[0];
                         args.Player.SendInfoMessage("{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",
                             player.TSPlayer.UserAccountName, player.kills, player.mobkills, player.bosskills, player.deaths,
                             sTools.suffix(player.kills), sTools.suffix(player.mobkills),
                             sTools.suffix(player.bosskills), sTools.suffix(player.deaths));
                     }
+                    else if (sTools.GetPlayer(name).Count > 1)
+                        {
+                            TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetPlayer(name).Select(
+                                p => p.Name));
+                        }
                     else
                     {
-
-
-                        if (sTools.GetstoredPlayer(args.Parameters[1]) != null)
+                        if (sTools.GetstoredPlayer(name).Count == 1)
                         {
-                            storedPlayer storedplayer = sTools.GetstoredPlayer(args.Parameters[1]);
+                            storedPlayer storedplayer = sTools.GetstoredPlayer(name)[0];
                             args.Player.SendInfoMessage("{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",
                                 storedplayer.name, storedplayer.kills, storedplayer.mobkills, storedplayer.bosskills, storedplayer.deaths,
                                 sTools.suffix(storedplayer.kills), sTools.suffix(storedplayer.mobkills),
                                 sTools.suffix(storedplayer.bosskills), sTools.suffix(storedplayer.deaths));
                         }
+                        else if (sTools.GetstoredPlayer(name).Count > 1)
+                        {
+                            TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetstoredPlayer(name).Select(
+                                p => p.name));
+                        }
                         else
                         {
                             args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                            args.Parameters[1]);
+                            name);
                         }
                     }
                 }
@@ -406,7 +459,9 @@ namespace Statistics
             else
                 args.Player.SendErrorMessage("Invalid syntax. Try /check kills [playerName]");
         }
+        #endregion
 
+        #region check_Afk
         public static void check_Afk(CommandArgs args)
         {
             if (args.Parameters.Count > 1)
@@ -426,17 +481,21 @@ namespace Statistics
                 }
                 else
                 {
-
-
-                    if (sTools.GetPlayer(args.Parameters[1]) != null)
+                    string name = string.Join(" ", args.Parameters).Substring(1, string.Join(" ", args.Parameters).Length - 1);
+                    
+                    if (sTools.GetPlayer(name).Count == 1)
                     {
-                        sPlayer player = sTools.GetPlayer(args.Parameters[1]);
+                        sPlayer player = sTools.GetPlayer(name)[0];
                         if (player.AFK)
                             args.Player.SendInfoMessage("{0} has been away for {1} second{0}",
                                 player.TSPlayer.UserAccountName, player.AFKcount,
                                 sTools.suffix(player.AFKcount));
                         else
                             args.Player.SendInfoMessage("{0} is not away", player.TSPlayer.UserAccountName);
+                    }
+                    else if (sTools.GetPlayer(name).Count > 1)
+                    {
+                        TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetPlayer(name).Select(p => p.Name));
                     }
                     else
                     {
@@ -446,7 +505,8 @@ namespace Statistics
                 }
             }
             else
-                args.Player.SendErrorMessage("Invalid syntax. Try /check afk [playerName]");
+                args.Player.SendErrorMessage("Invalid syntax. Try /check afk [playerName\\self]");
         }
+        #endregion
     }
 }
