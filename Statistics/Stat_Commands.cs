@@ -40,7 +40,7 @@ namespace Statistics
                             var uixInfo = new List<string>();
                             var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
 
-                            uixInfo.Add(string.Format("UIX info for {0}", args.Parameters[0]));
+                            uixInfo.Add(string.Format("UIX info for {0}", player.Name));
 
                             uixInfo.Add(string.Format("First login: {0} ({1} ago)",
                                 player.firstLogin, sTools.timeSpanPlayed(time_1)));
@@ -76,7 +76,11 @@ namespace Statistics
                 }
                 else
                 {
-                    string name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length - 2);
+                    string name = "";
+                    if (args.Parameters.Count > 1)
+                        name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length - 2);
+                    else
+                        name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length);
 
                     int pageNumber;
                     if (!PaginationTools.TryParsePageNumber(args.Parameters, string.Join(" ", args.Parameters).Length - 1,
@@ -90,7 +94,7 @@ namespace Statistics
                         var uixInfo = new List<string>();
                         var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
 
-                        uixInfo.Add(string.Format("UIX info for {0}", name));
+                        uixInfo.Add(string.Format("UIX info for {0}", player.Name));
 
                         uixInfo.Add(string.Format("First login: {0} ({1} ago)",
                             player.firstLogin, sTools.timeSpanPlayed(time_1)));
@@ -114,7 +118,7 @@ namespace Statistics
                             HeaderFormat = "Extended User Information [Page {0} of {1}]",
                             HeaderTextColor = Color.Lime,
                             LineTextColor = Color.White,
-                            FooterFormat = string.Format("/uix {0} {1} for more", name, pageNumber + 1),
+                            FooterFormat = string.Format("/uix {0} {1} for more", player.Name, pageNumber + 1),
                             FooterTextColor = Color.Lime
                         });
                     }
@@ -130,7 +134,7 @@ namespace Statistics
                             var uixInfo = new List<string>();
                             var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
 
-                            uixInfo.Add(string.Format("UIX info for {0}", name));
+                            uixInfo.Add(string.Format("UIX info for {0}", storedplayer.name));
 
                             uixInfo.Add(string.Format("First login: {0} ({1} ago)",
                                 storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
@@ -155,7 +159,7 @@ namespace Statistics
                                 HeaderFormat = "Extended User Information [Page {0} of {1}]",
                                 HeaderTextColor = Color.Lime,
                                 LineTextColor = Color.White,
-                                FooterFormat = string.Format("/uix {0} {1} for more", name, pageNumber + 1),
+                                FooterFormat = string.Format("/uix {0} {1} for more", storedplayer.name, pageNumber + 1),
                                 FooterTextColor = Color.Lime
                             });
                         }
@@ -221,7 +225,11 @@ namespace Statistics
                 }
                 else
                 {
-                    string name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length - 2);
+                    string name = "";
+                    if (args.Parameters.Count > 1)
+                        name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length - 2);
+                    else
+                        name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length);
 
                     int pageNumber;
                     if (!PaginationTools.TryParsePageNumber(args.Parameters, string.Join(" ", args.Parameters).Length - 1,
@@ -235,7 +243,7 @@ namespace Statistics
                         var uicInfo = new List<string>();
                         var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
 
-                        uicInfo.Add(string.Format("Character info for {0}", name));
+                        uicInfo.Add(string.Format("Character info for {0}", player.Name));
 
                         uicInfo.Add(string.Format("First login: {0} ({1} ago)",
                             player.firstLogin, sTools.timeSpanPlayed(time_1)));
@@ -250,7 +258,7 @@ namespace Statistics
                             HeaderFormat = "Extended User Information [Page {0} of {1}]",
                             HeaderTextColor = Color.Lime,
                             LineTextColor = Color.White,
-                            FooterFormat = string.Format("/uic {0} {1} for more", name, pageNumber + 1),
+                            FooterFormat = string.Format("/uic {0} {1} for more", player.Name, pageNumber + 1),
                             FooterTextColor = Color.Lime
                         });
                     }
@@ -268,7 +276,7 @@ namespace Statistics
                             var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
                             var time_2 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen));
 
-                            uicInfo.Add(string.Format("Character info for {0}", name));
+                            uicInfo.Add(string.Format("Character info for {0}", storedplayer.name));
 
                             uicInfo.Add(string.Format("First login: {0} ({1} ago)",
                                 storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
@@ -284,7 +292,7 @@ namespace Statistics
                                 HeaderFormat = "Character Information [Page {0} of {1}]",
                                 HeaderTextColor = Color.Lime,
                                 LineTextColor = Color.White,
-                                FooterFormat = string.Format("/uic {0} {1} for more", name, pageNumber + 1),
+                                FooterFormat = string.Format("/uic {0} {1} for more", storedplayer.name, pageNumber + 1),
                                 FooterTextColor = Color.Lime
                             });
                         }
@@ -295,7 +303,7 @@ namespace Statistics
                         }
                         else
                             args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                            args.Parameters[0]);
+                            name);
                     }
                 }
             }
@@ -332,7 +340,8 @@ namespace Statistics
                 }
                 else
                 {
-                    string name = string.Join(" ", args.Parameters).Substring(1, string.Join(" ", args.Parameters).Length - 1);
+                    args.Parameters.RemoveAt(0);
+                    string name = string.Join(" ", args.Parameters);
 
                     if (sTools.GetPlayer(name).Count == 1)
                     {
@@ -376,7 +385,9 @@ namespace Statistics
         {
             if (args.Parameters.Count > 1)
             {
-                string name = string.Join(" ", args.Parameters).Substring(1, string.Join(" ", args.Parameters).Length - 1);
+                args.Parameters.RemoveAt(0);
+                string name = string.Join(" ", args.Parameters);
+
                 var player = TShock.Utils.FindPlayer(name);
 
                 if (player.Count > 1)
@@ -418,7 +429,8 @@ namespace Statistics
                 }
                 else
                 {
-                    string name = string.Join(" ", args.Parameters).Substring(1, string.Join(" ", args.Parameters).Length - 1);
+                    args.Parameters.RemoveAt(0);
+                    string name = string.Join(" ", args.Parameters);
                     
                     if (sTools.GetPlayer(name).Count == 1)
                     {
@@ -481,7 +493,8 @@ namespace Statistics
                 }
                 else
                 {
-                    string name = string.Join(" ", args.Parameters).Substring(1, string.Join(" ", args.Parameters).Length - 1);
+                    args.Parameters.RemoveAt(0);
+                    string name = string.Join(" ", args.Parameters);
                     
                     if (sTools.GetPlayer(name).Count == 1)
                     {
