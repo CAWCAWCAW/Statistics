@@ -202,7 +202,6 @@ namespace Statistics
 
                         if (player.AFK)
                         {
-                            player.TSPlayer.GodMode = false;
                             player.AFK = false;
                         }
                     }

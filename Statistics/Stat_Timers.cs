@@ -46,7 +46,6 @@ namespace Statistics
                             TSPlayer.All.SendInfoMessage("{0} is now away", player.TSPlayer.Name);
                             player.TSPlayer.SendWarningMessage("You are now marked as away.");
                             player.TSPlayer.SendWarningMessage("This time is not being counted towards your statistics");
-                            player.TSPlayer.GodMode = true;
                             player.AFK = true;
                         }
                     }
@@ -57,7 +56,6 @@ namespace Statistics
                     if (player.AFK)
                     {
                         player.AFK = false;
-                        player.TSPlayer.GodMode = false;
                     }
 
                     if (player.AFKcount > 0)
