@@ -173,6 +173,34 @@ namespace Statistics
             return matches;
         }
 
+        public static List<sPlayer> GetPlayerByIP(string IP)
+        {
+            var matches = new List<sPlayer>();
+            foreach (sPlayer player in sTools.splayers)
+            {
+                if (player.TSPlayer.IP == IP)
+                    return new List<sPlayer> { player };
+                if (player.TSPlayer.IP.Contains(IP))
+                    matches.Add(player);
+            }
+
+            return matches;
+        }
+
+        public static List<storedPlayer> GetstoredPlayerByIP(string IP)
+        {
+            var matches = new List<storedPlayer>();
+            foreach (storedPlayer storedplayer in sTools.storedPlayers)
+            {
+                if (storedplayer.knownIPs.Contains(IP))
+                    matches.Add(storedplayer);
+                if (storedplayer.knownIPs == IP)
+                    return new List<storedPlayer> { storedplayer };
+            }
+
+            return matches;
+        }
+
         public static List<storedPlayer> GetstoredPlayer(string name)
         {
             var matches = new List<storedPlayer>();

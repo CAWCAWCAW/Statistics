@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -42,6 +43,8 @@ namespace Statistics
 
                             uixInfo.Add(string.Format("UIX info for {0}", player.Name));
 
+                            uixInfo.Add(string.Format("{0} is a member of group {1}", player.Name, player.TSPlayer.Group.Name));
+
                             uixInfo.Add(string.Format("First login: {0} ({1} ago)",
                                 player.firstLogin, sTools.timeSpanPlayed(time_1)));
 
@@ -50,12 +53,12 @@ namespace Statistics
                             uixInfo.Add(string.Format("Logged in {0} times since registering", player.loginCount));
                             try
                             {
-                                uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
+                                uixInfo.Add(string.Format("Known accounts: {0}", player.knownAccounts));
                             }
                             catch { uixInfo.Add("No known accounts found"); }
                             try
                             {
-                                uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
+                                uixInfo.Add(string.Format("Known IPs: {0}", player.knownIPs));
                             }
                             catch { uixInfo.Add("No known IPs found"); }
 
@@ -87,72 +90,32 @@ namespace Statistics
                         args.Player, out pageNumber))
                         return;
 
-                    if (sTools.GetPlayer(name).Count == 1)
+                    IPAddress IP;
+                    if (IPAddress.TryParse(name, out IP))
                     {
-                        sPlayer player = sTools.GetPlayer(name)[0];
-
-                        var uixInfo = new List<string>();
-                        var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
-
-                        uixInfo.Add(string.Format("UIX info for {0}", player.Name));
-
-                        uixInfo.Add(string.Format("First login: {0} ({1} ago)",
-                            player.firstLogin, sTools.timeSpanPlayed(time_1)));
-
-                        uixInfo.Add("Last seen: Now");
-
-                        uixInfo.Add(string.Format("Logged in {0} times since registering", player.loginCount));
-                        try
+                        if (sTools.GetPlayerByIP(IP.ToString()).Count == 1)
                         {
-                            uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
-                        }
-                        catch { uixInfo.Add("No known accounts found"); }
-                        try
-                        {
-                            uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
-                        }
-                        catch { uixInfo.Add("No known IPs found"); }
+                            sPlayer player = sTools.GetPlayerByIP(IP.ToString())[0];
 
-                        PaginationTools.SendPage(args.Player, pageNumber, uixInfo, new PaginationTools.Settings
-                        {
-                            HeaderFormat = "Extended User Information [Page {0} of {1}]",
-                            HeaderTextColor = Color.Lime,
-                            LineTextColor = Color.White,
-                            FooterFormat = string.Format("/uix {0} {1} for more", player.Name, pageNumber + 1),
-                            FooterTextColor = Color.Lime
-                        });
-                    }
-                    else if (sTools.GetPlayer(name).Count > 1)
-                    {
-                        TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetPlayer(name).Select(p => p.Name));
-                    }
-                    else
-                    {
-                        if (sTools.GetstoredPlayer(name).Count == 1)
-                        {
-                            storedPlayer storedplayer = sTools.GetstoredPlayer(name)[0];
                             var uixInfo = new List<string>();
-                            var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
+                            var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
 
-                            uixInfo.Add(string.Format("UIX info for {0}", storedplayer.name));
-
+                            uixInfo.Add(string.Format("UIX info for {0}", player.Name));
+                            uixInfo.Add(string.Format("{0} is a member of group {1}", player.Name, player.TSPlayer.Group.Name));
                             uixInfo.Add(string.Format("First login: {0} ({1} ago)",
-                                storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
+                                player.firstLogin, sTools.timeSpanPlayed(time_1)));
 
-                            uixInfo.Add(string.Format("Last seen: {0} ({1} ago).", storedplayer.lastSeen,
-                                sTools.timeSpanPlayed(DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen)))));
+                            uixInfo.Add("Last seen: Now");
 
-                            uixInfo.Add(string.Format("Overall play time: {0}", sTools.timePlayed(storedplayer.totalTime)));
-
-                            uixInfo.Add(string.Format("Logged in {0} times since registering", storedplayer.loginCount));
+                            uixInfo.Add(string.Format("Logged in {0} times since registering", player.loginCount));
                             try
                             {
-                                uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", storedplayer.knownAccounts.Split(','))));
+                                uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
                             }
                             catch { uixInfo.Add("No known accounts found"); }
                             try
                             {
-                                uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", storedplayer.knownIPs.Split(','))));
+                                uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
                             }
                             catch { uixInfo.Add("No known IPs found"); }
 
@@ -161,18 +124,152 @@ namespace Statistics
                                 HeaderFormat = "Extended User Information [Page {0} of {1}]",
                                 HeaderTextColor = Color.Lime,
                                 LineTextColor = Color.White,
-                                FooterFormat = string.Format("/uix {0} {1} for more", storedplayer.name, pageNumber + 1),
+                                FooterFormat = string.Format("/uix {0} {1} for more", player.Name, pageNumber + 1),
+                                FooterTextColor = Color.Lime
+                            });
+
+                        }
+                        else if (sTools.GetPlayerByIP(IP.ToString()).Count > 1)
+                            TShock.Utils.SendMultipleMatchError(args.Player,
+                                sTools.GetPlayerByIP(IP.ToString()).Select(p => p.Name));
+                        else
+                            if (sTools.GetstoredPlayerByIP(IP.ToString()).Count == 1)
+                            {
+                                storedPlayer storedplayer = sTools.GetstoredPlayerByIP(IP.ToString())[0];
+                                var uixInfo = new List<string>();
+                                var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
+
+                                uixInfo.Add(string.Format("UIX info for {0}", storedplayer.name));
+                                uixInfo.Add(string.Format("{0} is a member of group {1}", storedplayer.name, TShock.Users.GetUserByName(storedplayer.name).Group));
+                                uixInfo.Add(string.Format("First login: {0} ({1} ago)",
+                                    storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
+
+                                uixInfo.Add(string.Format("Last seen: {0} ({1} ago).", storedplayer.lastSeen,
+                                    sTools.timeSpanPlayed(DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen)))));
+
+                                uixInfo.Add(string.Format("Overall play time: {0}", sTools.timePlayed(storedplayer.totalTime)));
+
+                                uixInfo.Add(string.Format("Logged in {0} times since registering", storedplayer.loginCount));
+                                try
+                                {
+                                    uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", storedplayer.knownAccounts.Split(','))));
+                                }
+                                catch { uixInfo.Add("No known accounts found"); }
+                                try
+                                {
+                                    uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", storedplayer.knownIPs.Split(','))));
+                                }
+                                catch { uixInfo.Add("No known IPs found"); }
+
+                                PaginationTools.SendPage(args.Player, pageNumber, uixInfo, new PaginationTools.Settings
+                                {
+                                    HeaderFormat = "Extended User Information [Page {0} of {1}]",
+                                    HeaderTextColor = Color.Lime,
+                                    LineTextColor = Color.White,
+                                    FooterFormat = string.Format("/uix {0} {1} for more", storedplayer.name, pageNumber + 1),
+                                    FooterTextColor = Color.Lime
+                                });
+                            }
+
+                            else if (sTools.GetstoredPlayerByIP(IP.ToString()).Count > 1)
+                                TShock.Utils.SendMultipleMatchError(args.Player,
+                                    sTools.GetstoredPlayerByIP(IP.ToString()).Select(p => p.name));
+
+                            else
+                                args.Player.SendErrorMessage("Invalid IP address. Try /check ip {0} to make sure you're using the right IP address",
+                            name);
+                    }
+
+                    else
+                    {
+                        if (sTools.GetPlayer(name).Count == 1)
+                        {
+                            sPlayer player = sTools.GetPlayer(name)[0];
+
+                            var uixInfo = new List<string>();
+                            var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
+
+                            uixInfo.Add(string.Format("UIX info for {0}", player.Name));
+                            uixInfo.Add(string.Format("{0} is a member of group {1}", player.Name, player.TSPlayer.Group.Name));
+
+                            uixInfo.Add(string.Format("First login: {0} ({1} ago)",
+                                player.firstLogin, sTools.timeSpanPlayed(time_1)));
+
+                            uixInfo.Add("Last seen: Now");
+
+                            uixInfo.Add(string.Format("Logged in {0} times since registering", player.loginCount));
+                            try
+                            {
+                                uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", player.knownAccounts.Split(','))));
+                            }
+                            catch { uixInfo.Add("No known accounts found"); }
+                            try
+                            {
+                                uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", player.knownIPs.Split(','))));
+                            }
+                            catch { uixInfo.Add("No known IPs found"); }
+
+                            PaginationTools.SendPage(args.Player, pageNumber, uixInfo, new PaginationTools.Settings
+                            {
+                                HeaderFormat = "Extended User Information [Page {0} of {1}]",
+                                HeaderTextColor = Color.Lime,
+                                LineTextColor = Color.White,
+                                FooterFormat = string.Format("/uix {0} {1} for more", player.Name, pageNumber + 1),
                                 FooterTextColor = Color.Lime
                             });
                         }
-                        else if (sTools.GetstoredPlayer(name).Count > 1)
+                        else if (sTools.GetPlayer(name).Count > 1)
                         {
-                            TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetstoredPlayer(name).Select(
-                                p => p.name));
+                            TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetPlayer(name).Select(p => p.Name));
                         }
                         else
-                            args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                            name);
+                        {
+                            if (sTools.GetstoredPlayer(name).Count == 1)
+                            {
+                                storedPlayer storedplayer = sTools.GetstoredPlayer(name)[0];
+                                var uixInfo = new List<string>();
+                                var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
+
+                                uixInfo.Add(string.Format("UIX info for {0}", storedplayer.name));
+                                uixInfo.Add(string.Format("{0} is a member of group {1}", storedplayer.name, TShock.Users.GetUserByName(storedplayer.name).Group));
+                                uixInfo.Add(string.Format("First login: {0} ({1} ago)",
+                                    storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
+
+                                uixInfo.Add(string.Format("Last seen: {0} ({1} ago).", storedplayer.lastSeen,
+                                    sTools.timeSpanPlayed(DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen)))));
+
+                                uixInfo.Add(string.Format("Overall play time: {0}", sTools.timePlayed(storedplayer.totalTime)));
+
+                                uixInfo.Add(string.Format("Logged in {0} times since registering", storedplayer.loginCount));
+                                try
+                                {
+                                    uixInfo.Add(string.Format("Known accounts: {0}", string.Join(", ", storedplayer.knownAccounts.Split(','))));
+                                }
+                                catch { uixInfo.Add("No known accounts found"); }
+                                try
+                                {
+                                    uixInfo.Add(string.Format("Known IPs: {0}", string.Join(", ", storedplayer.knownIPs.Split(','))));
+                                }
+                                catch { uixInfo.Add("No known IPs found"); }
+
+                                PaginationTools.SendPage(args.Player, pageNumber, uixInfo, new PaginationTools.Settings
+                                {
+                                    HeaderFormat = "Extended User Information [Page {0} of {1}]",
+                                    HeaderTextColor = Color.Lime,
+                                    LineTextColor = Color.White,
+                                    FooterFormat = string.Format("/uix {0} {1} for more", storedplayer.name, pageNumber + 1),
+                                    FooterTextColor = Color.Lime
+                                });
+                            }
+                            else if (sTools.GetstoredPlayer(name).Count > 1)
+                            {
+                                TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetstoredPlayer(name).Select(
+                                    p => p.name));
+                            }
+                            else
+                                args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
+                                name);
+                        }
                     }
                 }
             }
@@ -225,6 +322,7 @@ namespace Statistics
                         args.Player.SendErrorMessage("Something broke. Please try again later");
                     }
                 }
+
                 else
                 {
                     string name = "";
@@ -238,74 +336,147 @@ namespace Statistics
                         args.Player, out pageNumber))
                         return;
 
-                    if (sTools.GetPlayer(name).Count == 1)
+                    IPAddress IP;
+                    if (IPAddress.TryParse(name, out IP))
                     {
-                        sPlayer player = sTools.GetPlayer(name)[0];
-
-                        var uicInfo = new List<string>();
-                        var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
-
-                        uicInfo.Add(string.Format("Character info for {0}", player.Name));
-
-                        uicInfo.Add(string.Format("First login: {0} ({1} ago)",
-                            player.firstLogin, sTools.timeSpanPlayed(time_1)));
-
-                        uicInfo.Add("Last seen: Now");
-
-                        uicInfo.Add(string.Format("Logged in {0} times since registering.  Overall play time: {1}",
-                                player.loginCount, sTools.timePlayed(player.TimePlayed)));
-
-                        PaginationTools.SendPage(args.Player, pageNumber, uicInfo, new PaginationTools.Settings
+                        if (sTools.GetPlayerByIP(IP.ToString()).Count == 1)
                         {
-                            HeaderFormat = "Extended User Information [Page {0} of {1}]",
-                            HeaderTextColor = Color.Lime,
-                            LineTextColor = Color.White,
-                            FooterFormat = string.Format("/uic {0} {1} for more", player.Name, pageNumber + 1),
-                            FooterTextColor = Color.Lime
-                        });
-                    }
-                    else if (sTools.GetPlayer(name).Count > 1)
-                    {
-                        TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetPlayer(name).Select(p => p.Name));
-                    }
-                    else
-                    {
-                        if (sTools.GetstoredPlayer(name).Count == 1)
-                        {
-                            storedPlayer storedplayer = sTools.GetstoredPlayer(name)[0];
+                            sPlayer player = sTools.GetPlayerByIP(IP.ToString())[0];
 
                             var uicInfo = new List<string>();
-                            var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
-                            var time_2 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen));
+                            var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
 
-                            uicInfo.Add(string.Format("Character info for {0}", storedplayer.name));
+                            uicInfo.Add(string.Format("Character info for {0}", player.Name));
 
                             uicInfo.Add(string.Format("First login: {0} ({1} ago)",
-                                storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
+                                player.firstLogin, sTools.timeSpanPlayed(time_1)));
 
-                            uicInfo.Add(string.Format("Last seen: {0} ({1} ago).", storedplayer.lastSeen,
-                                sTools.timeSpanPlayed(time_2)));
+                            uicInfo.Add("Last seen: Now");
 
                             uicInfo.Add(string.Format("Logged in {0} times since registering.  Overall play time: {1}",
-                                storedplayer.loginCount, sTools.timePlayed(storedplayer.totalTime)));
+                                    player.loginCount, sTools.timePlayed(player.TimePlayed)));
 
                             PaginationTools.SendPage(args.Player, pageNumber, uicInfo, new PaginationTools.Settings
                             {
-                                HeaderFormat = "Character Information [Page {0} of {1}]",
+                                HeaderFormat = "Extended User Information [Page {0} of {1}]",
                                 HeaderTextColor = Color.Lime,
                                 LineTextColor = Color.White,
-                                FooterFormat = string.Format("/uic {0} {1} for more", storedplayer.name, pageNumber + 1),
+                                FooterFormat = string.Format("/uic {0} {1} for more", player.Name, pageNumber + 1),
+                                FooterTextColor = Color.Lime
+                            });
+
+                        }
+                        else if (sTools.GetPlayerByIP(IP.ToString()).Count > 1)
+                            TShock.Utils.SendMultipleMatchError(args.Player,
+                                sTools.GetPlayerByIP(IP.ToString()).Select(p => p.Name));
+                        else
+                            if (sTools.GetstoredPlayerByIP(IP.ToString()).Count == 1)
+                            {
+                                storedPlayer storedplayer = sTools.GetstoredPlayerByIP(IP.ToString())[0];
+                                var uicInfo = new List<string>();
+                                var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
+                                var time_2 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen));
+
+                                uicInfo.Add(string.Format("Character info for {0}", storedplayer.name));
+
+                                uicInfo.Add(string.Format("First login: {0} ({1} ago)",
+                                    storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
+
+                                uicInfo.Add(string.Format("Last seen: {0} ({1} ago).", storedplayer.lastSeen,
+                                    sTools.timeSpanPlayed(time_2)));
+
+                                uicInfo.Add(string.Format("Logged in {0} times since registering.  Overall play time: {1}",
+                                    storedplayer.loginCount, sTools.timePlayed(storedplayer.totalTime)));
+
+                                PaginationTools.SendPage(args.Player, pageNumber, uicInfo, new PaginationTools.Settings
+                                {
+                                    HeaderFormat = "Character Information [Page {0} of {1}]",
+                                    HeaderTextColor = Color.Lime,
+                                    LineTextColor = Color.White,
+                                    FooterFormat = string.Format("/uic {0} {1} for more", storedplayer.name, pageNumber + 1),
+                                    FooterTextColor = Color.Lime
+                                });
+                            }
+
+                            else if (sTools.GetstoredPlayerByIP(IP.ToString()).Count > 1)
+                                TShock.Utils.SendMultipleMatchError(args.Player,
+                                    sTools.GetstoredPlayerByIP(IP.ToString()).Select(p => p.name));
+
+                            else
+                                args.Player.SendErrorMessage("Invalid IP address. Try /check ip {0} to make sure you're using the right IP address",
+                            name);
+                    }
+                    else
+                    {
+                        if (sTools.GetPlayer(name).Count == 1)
+                        {
+                            sPlayer player = sTools.GetPlayer(name)[0];
+
+                            var uicInfo = new List<string>();
+                            var time_1 = DateTime.Now.Subtract(DateTime.Parse(player.firstLogin));
+
+                            uicInfo.Add(string.Format("Character info for {0}", player.Name));
+
+                            uicInfo.Add(string.Format("First login: {0} ({1} ago)",
+                                player.firstLogin, sTools.timeSpanPlayed(time_1)));
+
+                            uicInfo.Add("Last seen: Now");
+
+                            uicInfo.Add(string.Format("Logged in {0} times since registering.  Overall play time: {1}",
+                                    player.loginCount, sTools.timePlayed(player.TimePlayed)));
+
+                            PaginationTools.SendPage(args.Player, pageNumber, uicInfo, new PaginationTools.Settings
+                            {
+                                HeaderFormat = "Extended User Information [Page {0} of {1}]",
+                                HeaderTextColor = Color.Lime,
+                                LineTextColor = Color.White,
+                                FooterFormat = string.Format("/uic {0} {1} for more", player.Name, pageNumber + 1),
                                 FooterTextColor = Color.Lime
                             });
                         }
-                        else if (sTools.GetstoredPlayer(name).Count > 1)
+                        else if (sTools.GetPlayer(name).Count > 1)
                         {
-                            TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetstoredPlayer(name).Select(
-                                p => p.name));
+                            TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetPlayer(name).Select(p => p.Name));
                         }
                         else
-                            args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
-                            name);
+                        {
+                            if (sTools.GetstoredPlayer(name).Count == 1)
+                            {
+                                storedPlayer storedplayer = sTools.GetstoredPlayer(name)[0];
+
+                                var uicInfo = new List<string>();
+                                var time_1 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.firstLogin));
+                                var time_2 = DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen));
+
+                                uicInfo.Add(string.Format("Character info for {0}", storedplayer.name));
+
+                                uicInfo.Add(string.Format("First login: {0} ({1} ago)",
+                                    storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
+
+                                uicInfo.Add(string.Format("Last seen: {0} ({1} ago).", storedplayer.lastSeen,
+                                    sTools.timeSpanPlayed(time_2)));
+
+                                uicInfo.Add(string.Format("Logged in {0} times since registering.  Overall play time: {1}",
+                                    storedplayer.loginCount, sTools.timePlayed(storedplayer.totalTime)));
+
+                                PaginationTools.SendPage(args.Player, pageNumber, uicInfo, new PaginationTools.Settings
+                                {
+                                    HeaderFormat = "Character Information [Page {0} of {1}]",
+                                    HeaderTextColor = Color.Lime,
+                                    LineTextColor = Color.White,
+                                    FooterFormat = string.Format("/uic {0} {1} for more", storedplayer.name, pageNumber + 1),
+                                    FooterTextColor = Color.Lime
+                                });
+                            }
+                            else if (sTools.GetstoredPlayer(name).Count > 1)
+                            {
+                                TShock.Utils.SendMultipleMatchError(args.Player, sTools.GetstoredPlayer(name).Select(
+                                    p => p.name));
+                            }
+                            else
+                                args.Player.SendErrorMessage("Invalid player. Try /check name {0} to make sure you're using the right username",
+                                name);
+                        }
                     }
                 }
             }

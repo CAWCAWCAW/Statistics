@@ -105,6 +105,22 @@ namespace Statistics
                 {
                     storedPlayer storedplayer = sTools.GetstoredPlayer(args.Player.UserAccountName)[0];
 
+                    if (storedplayer.knownIPs.Length > 0)
+                    {
+                        if (!storedplayer.knownIPs.Contains(args.Player.IP))
+                            storedplayer.knownIPs += ", " + args.Player.IP;
+                    }
+                    else
+                        storedplayer.knownIPs = args.Player.IP;
+
+                    if (storedplayer.knownAccounts.Length > 0)
+                    {
+                        if (!storedplayer.knownAccounts.Contains(args.Player.UserAccountName))
+                            storedplayer.knownAccounts += ", " + args.Player.UserAccountName;
+                    }
+                    else
+                        storedplayer.knownAccounts = args.Player.UserAccountName;
+
                     sTools.populatePlayerStats(player, storedplayer);
                     Log.ConsoleInfo("Successfully linked account {0} with stored player {1}",
                         args.Player.UserAccountName, storedplayer.name);
