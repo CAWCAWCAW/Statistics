@@ -20,7 +20,7 @@ namespace Statistics
     public class sCommands
     {
         /* Yama's suggestions */
-
+        
         #region UI_Extended
         public static void UI_Extended(CommandArgs args)
         {
@@ -139,8 +139,10 @@ namespace Statistics
                             uixInfo.Add(string.Format("First login: {0} ({1} ago)",
                                 storedplayer.firstLogin, sTools.timeSpanPlayed(time_1)));
 
-                            uixInfo.Add(string.Format("Last seen: {0}. Overall play time: {1}", storedplayer.lastSeen,
-                                sTools.timePlayed(storedplayer.totalTime)));
+                            uixInfo.Add(string.Format("Last seen: {0} ({1} ago).", storedplayer.lastSeen,
+                                sTools.timeSpanPlayed(DateTime.Now.Subtract(DateTime.Parse(storedplayer.lastSeen)))));
+
+                            uixInfo.Add(string.Format("Overall play time: {0}", sTools.timePlayed(storedplayer.totalTime)));
 
                             uixInfo.Add(string.Format("Logged in {0} times since registering", storedplayer.loginCount));
                             try
