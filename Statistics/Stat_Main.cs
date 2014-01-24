@@ -82,11 +82,25 @@ namespace Statistics
             GetDataHandlers.InitGetDataHandler();
         }
 
-        //Setup and intialization
         #region OnInitialize
         public void OnInitialize(EventArgs args)
         {
-            sTools.registerCommands();
+            Commands.ChatCommands.Add(new Command("stats.check", stat_Check, "check")
+            {
+                HelpText = "Base command for the Statistics plugin. Allows you to view statistics about players"
+            });
+
+            Commands.ChatCommands.Add(new Command("stats.uix", sCommands.UI_Extended, "uix")
+            {
+                HelpText = "Extended user information"
+            });
+
+            Commands.ChatCommands.Add(new Command("stats.uic", sCommands.UI_Character, "uic")
+            {
+                HelpText = "Provides information about a player's character"
+            });
+
+            sTools.registerSubs();
             /*Commands.ChatCommands.Add(new Command("graph.set", _Graph.graphCommand, "graph") { AllowServer = false });
             Commands.ChatCommands.Add(new Command("graph.add", _Graph.createGraph, "cgraph") { AllowServer = false });*/
 
@@ -231,6 +245,11 @@ namespace Statistics
             : base(game)
         {
             Order = 100;
+        }
+
+        public void stat_Check(CommandArgs args)
+        {
+            sTools.handler.RunSubcommand(args);
         }
     }
 }

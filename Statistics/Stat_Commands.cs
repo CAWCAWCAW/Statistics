@@ -45,7 +45,7 @@ namespace Statistics
 
                             uixInfo.Add(string.Format("{0} is a member of group {1}", player.Name, player.TSPlayer.Group.Name));
 
-                            uixInfo.Add(string.Format("First login: {0} ({1} ago)",
+                            uixInfo.Add(string.Format("First login: {0} ({1}ago)",
                                 player.firstLogin, sTools.timeSpanPlayed(time_1)));
 
                             uixInfo.Add("Last seen: Now");
@@ -487,11 +487,6 @@ namespace Statistics
 
         /* ------------------ */
 
-
-        public static void stat_Check(CommandArgs args)
-        {
-            sTools.handler.RunSubcommand(args);
-        }
 
         #region check_Time
         public static void check_Time(CommandArgs args)

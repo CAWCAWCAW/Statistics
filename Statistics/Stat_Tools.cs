@@ -285,23 +285,8 @@ namespace Statistics
             }
         }
 
-        public static void registerCommands()
+        public static void registerSubs()
         {
-            Commands.ChatCommands.Add(new Command("stats.check", sCommands.stat_Check, "check") 
-            { 
-                HelpText = "Base command for the Statistics plugin. Allows you to view statistics about players" 
-            });
-
-            Commands.ChatCommands.Add(new Command("stats.uix", sCommands.UI_Extended, "uix") 
-            { 
-                HelpText = "Extended user information"
-            });
-
-            Commands.ChatCommands.Add(new Command("stats.uic", sCommands.UI_Character, "uic")
-            {
-                HelpText = "Provides information about a player's character"
-            });
-
             handler.RegisterSubcommand("time", sCommands.check_Time, "stats.time", "stats.*");
             handler.RegisterSubcommand("afk", sCommands.check_Afk, "stats.afk", "stats.*");
             handler.RegisterSubcommand("kills", sCommands.check_Kills, "stats.kills", "stats.*");
@@ -324,6 +309,7 @@ namespace Statistics
             }
             Log.ConsoleInfo("Database save complete");
         }
+        
 
         public static string suffix(int number)
         {
@@ -339,16 +325,39 @@ namespace Statistics
 
             TimeSpan ts = new TimeSpan(0, 0, 0, (int)totalTime);
 
-            return string.Format("{0} week{5} {1} day{6} {2} hour{7} {3} minute{8} {4} second{9}",
-                weeks, days, ts.Hours, ts.Minutes, ts.Seconds,
-                suffix((int)weeks), suffix((int)days), suffix(ts.Hours), suffix(ts.Minutes), suffix(ts.Seconds));
+            return string.Format("{0}{5}{1}{6}{2}{7}{3}{8}{10}{4}{9}",
+                weeks > 0 ? weeks.ToString() + " week" : "",
+                ts.Days > 0 ? ts.Days.ToString() + " day" : "",
+                ts.Hours > 0 ? ts.Hours.ToString() + " hour" : "",
+                ts.Minutes > 0 ? ts.Minutes.ToString() + " minute" : "",
+                ts.Seconds > 0 ? " " + ts.Seconds.ToString() + " second" : "",
+
+                weeks > 1 ? "s " : "",
+                ts.Days > 1 ? "s " : (ts.Days == 0 || ts.Days == 1) && weeks != 0 ? " " : "",
+                ts.Hours > 1 ? "s " : (ts.Hours == 0 || ts.Hours == 1) && (ts.Days != 0 || weeks != 0) ? " " : "",
+                ts.Minutes > 1 ? "s " : (ts.Minutes == 0 || ts.Minutes == 1) && (ts.Hours != 0 || ts.Days != 0 || weeks != 0 || ts.Seconds > 0) ? " " : "",
+                ts.Seconds > 1 ? "s " : (ts.Seconds == 0 || ts.Seconds == 1) && (ts.Minutes != 0 || ts.Hours != 0 || ts.Days != 0 || weeks != 0) ? " " : "",
+                ts.Seconds > 0 && (weeks != 0 || ts.Days != 0 || ts.Minutes != 0) ? "and" : "").Trim();
+
+
+            //return string.Format("{0} week{5} {1} day{6} {2} hour{7} {3} minute{8} {4} second{9}",
+            //    weeks, days, ts.Hours, ts.Minutes, ts.Seconds,
+            //    suffix((int)weeks), suffix((int)days), suffix(ts.Hours), suffix(ts.Minutes), suffix(ts.Seconds));
         }
 
         public static string timeSpanPlayed(TimeSpan ts)
         {
-            return string.Format("{0} day{4} {1} hour{5} {2} minute{6} {3} second{7}",
-                ts.Days, ts.Hours, ts.Minutes, ts.Seconds, suffix(ts.Days), suffix(ts.Hours),
-                suffix(ts.Minutes), suffix(ts.Seconds));
+            return string.Format("{0}{4}{1}{5}{2}{6}{8}{3}{7}",
+                ts.Days > 0 ? ts.Days.ToString() + " day" : "",
+                ts.Hours > 0 ? ts.Hours.ToString() + " hour" : "",
+                ts.Minutes > 0 ? ts.Minutes.ToString() + " minute" : "",
+                ts.Seconds > 0 ? " " + ts.Seconds.ToString() + " second" : "",
+
+                ts.Days > 1 ? "s " : (ts.Days == 0 || ts.Days == 1) ? " " : "",
+                ts.Hours > 1 ? "s " : (ts.Hours == 0 || ts.Hours == 1) && (ts.Days != 0) ? " " : "",
+                ts.Minutes > 1 ? "s " : (ts.Minutes == 0 || ts.Minutes == 1) && (ts.Hours != 0 || ts.Days != 0 || ts.Seconds > 0) ? " " : "",
+                ts.Seconds > 1 ? "s " : (ts.Seconds == 0 || ts.Seconds == 1) && (ts.Minutes != 0 || ts.Hours != 0 || ts.Days != 0) ? " " : "",
+                ts.Seconds > 0 && (ts.Days != 0 || ts.Minutes != 0) ? "and" : "").Trim();
         }
     }
 
