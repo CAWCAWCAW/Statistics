@@ -80,14 +80,20 @@ namespace Statistics
                 else
                 {
                     string name = "";
+                    bool needNumber = false;
                     if (args.Parameters.Count > 1)
-                        name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length - 2);
+                    {
+                        var newArgs = new List<string>(args.Parameters);
+                        newArgs.RemoveAt(newArgs.Count - 1);
+                        name = string.Join(" ", newArgs);
+                        needNumber = true;
+                    }
                     else
-                        name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length);
+                        name = string.Join(" ", args.Parameters);
 
                     int pageNumber;
-                    if (!PaginationTools.TryParsePageNumber(args.Parameters, string.Join(" ", args.Parameters).Length - 1,
-                        args.Player, out pageNumber))
+                    if (!PaginationTools.TryParsePageNumber(args.Parameters,
+                        needNumber ? args.Parameters.Count - 1 : args.Parameters.Count + 1, args.Player, out pageNumber))
                         return;
 
                     IPAddress IP;
@@ -326,14 +332,20 @@ namespace Statistics
                 else
                 {
                     string name = "";
+                    bool needNumber = false;
                     if (args.Parameters.Count > 1)
-                        name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length - 2);
+                    {
+                        var newArgs = new List<string>(args.Parameters);
+                        newArgs.RemoveAt(newArgs.Count - 1);
+                        name = string.Join(" ", newArgs);
+                        needNumber = true;
+                    }
                     else
-                        name = string.Join(" ", args.Parameters).Substring(0, string.Join(" ", args.Parameters).Length);
+                        name = string.Join(" ", args.Parameters);
 
                     int pageNumber;
-                    if (!PaginationTools.TryParsePageNumber(args.Parameters, string.Join(" ", args.Parameters).Length - 1,
-                        args.Player, out pageNumber))
+                    if (!PaginationTools.TryParsePageNumber(args.Parameters,
+                        needNumber ? args.Parameters.Count - 1 : args.Parameters.Count + 1, args.Player, out pageNumber))
                         return;
 
                     IPAddress IP;
