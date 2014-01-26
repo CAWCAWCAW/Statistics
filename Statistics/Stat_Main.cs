@@ -80,6 +80,9 @@ namespace Statistics
             TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PostLogin;
 
             GetDataHandlers.InitGetDataHandler();
+
+            for (int i = 0; i < sTools.splayers.Length; i++)
+                sTools.splayers[i] = null;
         }
 
         #region OnInitialize
