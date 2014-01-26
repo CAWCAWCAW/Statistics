@@ -80,9 +80,6 @@ namespace Statistics
             TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PostLogin;
 
             GetDataHandlers.InitGetDataHandler();
-
-            for (int i = 0; i < sTools.splayers.Length; i++)
-                sTools.splayers[i] = null;
         }
 
         #region OnInitialize
@@ -176,9 +173,9 @@ namespace Statistics
         #region OnGreet
         public void OnGreet(GreetPlayerEventArgs args)
         {
-            if (sTools.splayers[args.Who] == null)
+            if (sTools.GetPlayer(args.Who) == null)
             {
-                sTools.splayers[args.Who] = new sPlayer(args.Who);
+                sTools.splayers.Add(new sPlayer(args.Who));
 
                 if (!TShock.Config.DisableUUIDLogin)
                     if (TShock.Players[args.Who].IsLoggedIn)

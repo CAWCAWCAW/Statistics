@@ -23,7 +23,7 @@ namespace Statistics
     public class sTools
     {
         public static IDbConnection db;
-        public static sPlayer[] splayers = new sPlayer[255];
+        public static List<sPlayer> splayers = new List<sPlayer>();
         public static List<storedPlayer> storedPlayers = new List<storedPlayer>();
 
         public static subCommandHandler handler = new subCommandHandler();
@@ -256,17 +256,20 @@ namespace Statistics
         /// <param name="storedplayer"></param>
         public static void populateStoredStats(sPlayer player, storedPlayer storedplayer)
         {
-            storedplayer.totalTime = player.TimePlayed;
-            storedplayer.firstLogin = player.firstLogin;
-            storedplayer.lastSeen = DateTime.Now.ToString("G");
-            storedplayer.loginCount = player.loginCount;
-            storedplayer.knownAccounts = player.knownAccounts;
-            storedplayer.knownIPs = player.knownIPs;
+            if (player != null && storedplayer != null)
+            {
+                storedplayer.totalTime = player.TimePlayed;
+                storedplayer.firstLogin = player.firstLogin;
+                storedplayer.lastSeen = DateTime.Now.ToString("G");
+                storedplayer.loginCount = player.loginCount;
+                storedplayer.knownAccounts = player.knownAccounts;
+                storedplayer.knownIPs = player.knownIPs;
 
-            storedplayer.kills = player.kills;
-            storedplayer.deaths = player.deaths;
-            storedplayer.mobkills = player.mobkills;
-            storedplayer.bosskills = player.bosskills;
+                storedplayer.kills = player.kills;
+                storedplayer.deaths = player.deaths;
+                storedplayer.mobkills = player.mobkills;
+                storedplayer.bosskills = player.bosskills;
+            }
         }
 
         /// <summary>
@@ -298,7 +301,8 @@ namespace Statistics
         public static void saveDatabase()
         {
             foreach (sPlayer player in splayers)
-                populateStoredStats(player, GetstoredPlayer(player.TSPlayer.UserAccountName)[0]);
+                if (player.TSPlayer.IsLoggedIn)
+                    populateStoredStats(player, GetstoredPlayer(player.TSPlayer.UserAccountName)[0]);
 
             foreach (storedPlayer storedplayer in storedPlayers)
             {
@@ -338,11 +342,6 @@ namespace Statistics
                 ts.Minutes > 1 ? "s " : (ts.Minutes == 0 || ts.Minutes == 1) && (ts.Hours != 0 || ts.Days != 0 || weeks != 0 || ts.Seconds > 0) ? " " : "",
                 ts.Seconds > 1 ? "s " : (ts.Seconds == 0 || ts.Seconds == 1) && (ts.Minutes != 0 || ts.Hours != 0 || ts.Days != 0 || weeks != 0) ? " " : "",
                 ts.Seconds > 0 && (weeks != 0 || ts.Days != 0 || ts.Minutes != 0) ? "and" : "").Trim();
-
-
-            //return string.Format("{0} week{5} {1} day{6} {2} hour{7} {3} minute{8} {4} second{9}",
-            //    weeks, days, ts.Hours, ts.Minutes, ts.Seconds,
-            //    suffix((int)weeks), suffix((int)days), suffix(ts.Hours), suffix(ts.Minutes), suffix(ts.Seconds));
         }
 
         public static string timeSpanPlayed(TimeSpan ts)
@@ -363,7 +362,6 @@ namespace Statistics
 
     public class subCommandHandler
     {
-        //private Dictionary<string, Action<CommandArgs>> subCommands = new Dictionary<string, Action<CommandArgs>>();
         private List<subCommand> subCommands = new List<subCommand>();
 
         public string HelpText;
