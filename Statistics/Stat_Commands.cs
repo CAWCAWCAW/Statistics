@@ -51,7 +51,7 @@ namespace Statistics
                                     player.firstLogin, sTools.timeSpanPlayed(time_1)));
 
                                 uixInfo.Add("Last seen: Now");
-
+                                uixInfo.Add(string.Format("Overall play time: {0}", sTools.timePlayed(player.TimePlayed)));
                                 uixInfo.Add(string.Format("Logged in {0} times since registering", player.loginCount));
                                 try
                                 {
@@ -119,7 +119,7 @@ namespace Statistics
                                     player.firstLogin, sTools.timeSpanPlayed(time_1)));
 
                                 uixInfo.Add("Last seen: Now");
-
+                                uixInfo.Add(string.Format("Overall play time: {0}", sTools.timePlayed(player.TimePlayed)));
                                 uixInfo.Add(string.Format("Logged in {0} times since registering", player.loginCount));
                                 try
                                 {
