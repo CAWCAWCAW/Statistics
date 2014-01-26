@@ -161,12 +161,11 @@ namespace Statistics
         #region OnLeave
         public void OnLeave(LeaveEventArgs args)
         {
-            sPlayer player = sTools.GetPlayer(args.Who);
-            if (player != null)
+            if (sTools.splayers[args.Who] != null)
             {
-                sTools.UpdatePlayer(player);
+                sTools.UpdatePlayer(sTools.splayers[args.Who]);
 
-                sTools.splayers.RemoveAll(p => p.Index == args.Who);
+                sTools.splayers[args.Who] = null;
             }
         }
         #endregion
@@ -174,12 +173,13 @@ namespace Statistics
         #region OnGreet
         public void OnGreet(GreetPlayerEventArgs args)
         {
-            sTools.splayers.Add(new sPlayer(args.Who));
-
-            if (!TShock.Config.DisableUUIDLogin)
+            if (sTools.splayers[args.Who] == null)
             {
-                if (TShock.Players[args.Who].IsLoggedIn)
-                    PostLogin(new TShockAPI.Hooks.PlayerPostLoginEventArgs(TShock.Players[args.Who]));
+                sTools.splayers[args.Who] = new sPlayer(args.Who);
+
+                if (!TShock.Config.DisableUUIDLogin)
+                    if (TShock.Players[args.Who].IsLoggedIn)
+                        PostLogin(new TShockAPI.Hooks.PlayerPostLoginEventArgs(TShock.Players[args.Who]));
             }
         }
         #endregion

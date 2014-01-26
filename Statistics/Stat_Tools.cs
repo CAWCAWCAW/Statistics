@@ -23,7 +23,7 @@ namespace Statistics
     public class sTools
     {
         public static IDbConnection db;
-        public static List<sPlayer> splayers = new List<sPlayer>();
+        public static sPlayer[] splayers = new sPlayer[255];
         public static List<storedPlayer> storedPlayers = new List<storedPlayer>();
 
         public static subCommandHandler handler = new subCommandHandler();
