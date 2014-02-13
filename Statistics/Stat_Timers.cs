@@ -11,7 +11,7 @@ namespace Statistics
 {
     public class Stat_Timers
     {
-        static Timer aTimer = new Timer(5 * 1000);
+        static Timer aTimer = new Timer(1000);
         static Timer uTimer = new Timer(60 * 1000);
         static Timer databaseSaver = new Timer(600 * 1000);
 
@@ -34,11 +34,13 @@ namespace Statistics
 
         static void afkTimer(object sender, ElapsedEventArgs args)
         {
+
+            /* Needs advanced afk checks */
             foreach (sPlayer player in sTools.splayers)
             {
                 if (player.TSPlayer.X == player.lastPosX && player.TSPlayer.Y == player.lastPosY)
                 {
-                    player.AFKcount += 5;
+                    player.AFKcount++;
                     if (player.AFKcount > 300)
                     {
                         if (!player.AFK)
@@ -52,11 +54,9 @@ namespace Statistics
                 }
                 else
                 {
-                    player.TimePlayed += 5;
+                    player.TimePlayed++;
                     if (player.AFK)
-                    {
                         player.AFK = false;
-                    }
 
                     if (player.AFKcount > 0)
                         player.AFKcount = 0;

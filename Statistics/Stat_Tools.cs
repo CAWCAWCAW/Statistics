@@ -329,7 +329,14 @@ namespace Statistics
 
             TimeSpan ts = new TimeSpan(0, 0, 0, (int)totalTime);
 
-            return string.Format("{0}{5}{1}{6}{2}{7}{3}{8}{10}{4}{9}",
+            return string.Format("{0} week{5} {1} day{6} {2} hour{7} {3} minute{8} {4} second{9}",
+            weeks, days, ts.Hours, ts.Minutes, ts.Seconds, suffix((int)weeks), suffix((int)days), suffix(ts.Hours), 
+            suffix(ts.Minutes), suffix(ts.Seconds));
+
+
+
+            /*  Broken format
+             return string.Format("{0}{5}{1}{6}{2}{7}{3}{8}{10}{4}{9}",
                 weeks > 0 ? weeks.ToString() + " week" : "",
                 ts.Days > 0 ? ts.Days.ToString() + " day" : "",
                 ts.Hours > 0 ? ts.Hours.ToString() + " hour" : "",
@@ -341,7 +348,7 @@ namespace Statistics
                 ts.Hours > 1 ? "s " : (ts.Hours == 0 || ts.Hours == 1) && (ts.Days != 0 || weeks != 0) ? " " : "",
                 ts.Minutes > 1 ? "s " : (ts.Minutes == 0 || ts.Minutes == 1) && (ts.Hours != 0 || ts.Days != 0 || weeks != 0 || ts.Seconds > 0) ? " " : "",
                 ts.Seconds > 1 ? "s " : (ts.Seconds == 0 || ts.Seconds == 1) && (ts.Minutes != 0 || ts.Hours != 0 || ts.Days != 0 || weeks != 0) ? " " : "",
-                ts.Seconds > 0 && (weeks != 0 || ts.Days != 0 || ts.Minutes != 0) ? "and" : "").Trim();
+                ts.Seconds > 0 && (weeks != 0 || ts.Days != 0 || ts.Minutes != 0) ? "and" : "").Trim();*/
         }
 
         public static string timeSpanPlayed(TimeSpan ts)

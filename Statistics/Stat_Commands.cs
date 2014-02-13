@@ -644,12 +644,11 @@ namespace Statistics
                 }
                 else
                 {
-                    args.Parameters.RemoveAt(0);
                     string name = string.Join(" ", args.Parameters);
                     
                     if (sTools.GetPlayer(name).Count == 1)
                     {
-                        sPlayer player = sTools.GetPlayer(args.Parameters[1])[0];
+                        sPlayer player = sTools.GetPlayer(name)[0];
                         if (player.TSPlayer.IsLoggedIn)
                         {
                             args.Player.SendInfoMessage("{0} has killed {1} player{5}, {2} mob{6}, {3} boss{7} and died {4} time{8}",

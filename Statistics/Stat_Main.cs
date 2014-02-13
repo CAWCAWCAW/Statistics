@@ -140,6 +140,12 @@ namespace Statistics
                         args.Player.UserAccountName, storedplayer.name);
                     return;
                 }
+                else if (sTools.GetstoredPlayer(args.Player.UserAccountName).Count > 1)
+                {
+                    Log.ConsoleError("Multiple match error! --Attempting to obtain stored player for {0} resulted in" +
+                        " {1} matches: {2}", args.Player.UserAccountName, sTools.GetstoredPlayer(args.Player.UserAccountName).Count,
+                        sTools.GetstoredPlayer(args.Player.UserAccountName).Select(p => p.name));
+                }
                 else
                 {
                     Log.ConsoleInfo("New stored player named {0} has been added", args.Player.UserAccountName);
@@ -155,17 +161,27 @@ namespace Statistics
                          args.Player.UserAccountName, sTools.storedPlayers[sTools.storedPlayers.Count - 1].name);
                 }
             }
+            else
+            {
+                sTools.splayers.Add(new sPlayer(args.Player.Index));
+                PostLogin(new TShockAPI.Hooks.PlayerPostLoginEventArgs(args.Player));
+
+                /*Log.ConsoleError("Error encountered while checking '" + args.Player.Name + "'");
+                Log.ConsoleError("Unable to find a stat player with index '" + args.Player.Index + "'");
+                Log.ConsoleError("Player at statistic index " + args.Player.Index + " is " + sTools.splayers[args.Player.Index]);
+                */
+           }
         }
         #endregion
 
         #region OnLeave
         public void OnLeave(LeaveEventArgs args)
         {
-            if (sTools.splayers[args.Who] != null)
+            if (sTools.GetPlayer(args.Who) != null)
             {
-                sTools.UpdatePlayer(sTools.splayers[args.Who]);
+                sTools.UpdatePlayer(sTools.GetPlayer(args.Who));
 
-                sTools.splayers[args.Who] = null;
+                sTools.splayers.RemoveAll(p => p.Index == args.Who);
             }
         }
         #endregion
@@ -222,7 +238,7 @@ namespace Statistics
         {
             try
             {
-                var player = sTools.splayers[args.Who];
+                var player = sTools.GetPlayer(args.Who);
                 if (player != null)
                 {
                     if (!args.Text.StartsWith("/check"))
