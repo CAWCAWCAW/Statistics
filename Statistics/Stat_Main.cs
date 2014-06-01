@@ -21,7 +21,7 @@ using MySql.Data.MySqlClient;
 
 namespace Statistics
 {
-    [ApiVersion(1, 14)]
+    [ApiVersion(1, 16)]
     public class Statistics : TerrariaPlugin
     {
         public override string Author
